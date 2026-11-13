@@ -168,6 +168,8 @@
     night:   { top: '#12070C', bottom: '#2A0E12', fg: '#F5EAD8', soft: 'rgba(245,234,216,.72)', stars: 1,   orb: '#F2E6CF', glow: 'rgba(242,230,207,.22)', orbY: 6, orbOp: .55, accent: '#E7A9B4' },
     morning: { top: '#EADBC2', bottom: '#F7EFE2', fg: '#3B1A1D', soft: 'rgba(59,26,29,.72)',    stars: 0,   orb: '#FFF3D6', glow: 'rgba(255,226,170,.55)', orbY: 8, orbOp: .9,  accent: '#800020' },
     noon:    { top: '#C9D3BF', bottom: '#F1EADC', fg: '#24301F', soft: 'rgba(36,48,31,.72)',    stars: 0,   orb: '#FFF8E6', glow: 'rgba(255,240,200,.6)',  orbY: 5, orbOp: .9,  accent: '#3F6B4A' },
+    dawn:    { top: '#3B1E2E', bottom: '#B9867E', fg: '#FBEFE0', soft: 'rgba(251,239,224,.78)', stars: .45, orb: '#F2E6CF', glow: 'rgba(242,230,207,.2)', orbY: 12, orbOp: .5, accent: '#F3C7C0' },
+    sunrise: { top: '#C77B6A', bottom: '#F4D7B5', fg: '#3B1A1D', soft: 'rgba(59,26,29,.75)', stars: 0, orb: '#FFE2B0', glow: 'rgba(255,200,140,.6)', orbY: 82, orbOp: .95, accent: '#800020' },
     sunset:  { top: '#5C1A1B', bottom: '#C0704E', fg: '#FBEFE0', soft: 'rgba(251,239,224,.78)', stars: .25, orb: '#F6B47C', glow: 'rgba(246,160,100,.5)',  orbY: 90, orbOp: .9, accent: '#F6C9A8' },
   };
   const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
@@ -265,6 +267,19 @@
   });
   // if she scrolls past the button instead, start the song on her first tap anywhere
   addEventListener('pointerup', () => { if (!isLocked()) playSong(); }, { once: true });
+
+  /* =====================================================
+     YEAR COUNTER: 2013 → 2025 as she scrolls through chapter two
+     ===================================================== */
+  const yearsSec = $('#years'), yearEl = $('#yearCounter'), yearFill = $('#yearFill');
+  function paintYears() {
+    const r = yearsSec.getBoundingClientRect();
+    const k = Math.max(0, Math.min(1, (innerHeight * .6 - r.top) / (innerHeight * .9)));
+    yearEl.textContent = String(2013 + Math.round(k * 12));
+    yearFill.style.width = (k * 100).toFixed(1) + '%';
+  }
+  addEventListener('scroll', () => requestAnimationFrame(paintYears), { passive: true });
+  paintYears();
 
   /* =====================================================
      POLAROIDS: tap to flip
