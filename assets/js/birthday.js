@@ -3,6 +3,8 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const wait = ms => new Promise(r => setTimeout(r, ms));
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const UNLOCK_AT = Date.parse('2026-12-09T00:00:00+07:00'); // midnight WIB
+  const PREVIEW = new URLSearchParams(location.search).has('preview');
 
   /* =====================================================
      PETALS (canvas)
@@ -143,6 +145,17 @@
     if (decoy.classList.contains('is-opening')) return;
     decoy.classList.add('is-opening');
     await wait(reduced ? 900 : 2600);
+
+    // Before her birthday the page behaves like a plain invitation draft.
+    // Add ?preview to the URL to test the full surprise early.
+    if (Date.now() < UNLOCK_AT && !PREVIEW) {
+      const hint = $('#coverHint');
+      hint.textContent = 'Masih draf ya, belum final. Nanti aku kabarin.';
+      hint.style.animation = 'none';
+      hint.style.opacity = '.85';
+      hint.style.visibility = 'visible';
+      return;
+    }
 
     decoy.classList.add('is-twist');
     recipient.style.opacity = '0';

@@ -388,6 +388,21 @@ button { font: inherit; }
 .stand-stem { width: 22%; height: 30px; margin: -2px auto 0; background: linear-gradient(90deg, #D9CDB4, #F6F0E4 45%, #C8BA9C); clip-path: polygon(30% 0, 70% 0, 62% 100%, 38% 100%); }
 .stand-foot { width: 48%; height: 12px; margin: -2px auto 0; border-radius: 50%; background: linear-gradient(180deg, #EFE7D7, #C8BA9C); box-shadow: 0 10px 18px rgba(46,27,31,.22); }
 
+/* number candles: 2 and 6 */
+.candles:has(.num) { gap: 6px; }
+.candle.num { width: auto; height: auto; background: none; box-shadow: none; }
+.digit {
+  display: block; font-family: var(--font-serif); font-weight: 600;
+  font-size: 104px; line-height: .78; padding-top: 6px;
+  color: #FBF6EC;
+  -webkit-text-stroke: 1.5px rgba(107,54,70,.75);
+  text-shadow: 2px 3px 0 #E4D6C0, 0 6px 10px rgba(46,27,31,.18);
+}
+.candle.num .wick { top: 12px; }
+.candle.num .flame { top: -16px; width: 16px; height: 30px; }
+.candle.num .smoke { top: 2px; }
+.candle.num::after { inset: -50px -6px -4px; }
+
 /* the match */
 .match {
   position: absolute; left: 105%; top: 120px; z-index: 5; width: 7px; height: 70px;
