@@ -265,6 +265,7 @@
   const musicBtn = $('#musicBtn');
   let songOk = true;
   song.addEventListener('error', () => { songOk = false; musicBtn.hidden = true; });
+  song.addEventListener('ended', () => { musicBtn.classList.add('paused'); musicBtn.setAttribute('aria-label', 'Play music'); });
 
   function fadeTo(target, ms = 1500) {
     const from = song.volume, t0 = performance.now();
