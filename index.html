@@ -14,55 +14,33 @@
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Pinyon+Script&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/birthday.css">
 </head>
-<body class="is-locked">
+<body>
 <canvas id="petals" aria-hidden="true"></canvas>
 
 <!-- =====================================================
-     1. DECOY: looks exactly like the wedding invitation
+     BEFORE DEC 9: a plain invitation card (nothing to spoil)
      ===================================================== -->
-<section class="decoy" id="decoy" aria-label="Undangan">
-  <div class="decoy-inner">
-    <div class="recipient">
-      <p class="caps">Kepada Yth.</p>
-      <p class="recipient-name script">Gendhys Azizah Duanty</p>
-    </div>
+<section class="waiting" id="waiting" aria-label="Undangan" hidden>
+  <div class="waiting-inner">
+    <p class="caps to-label">Kepada Yth.</p>
+    <p class="recipient-name script">Gendhys Azizah Duanty</p>
 
-    <div class="envelope" id="envelope">
-      <picture class="fx fx-back" style="left:-5%;top:47%;width:39%;--r:-20deg"><img src="assets/img/bq/orchid.webp" alt=""></picture>
-      <picture class="fx fx-back" style="left:105%;top:40%;width:38%;--r:18deg"><img src="assets/img/bq/burgundy.webp" alt=""></picture>
-
-      <div class="env-back"></div>
-
-      <div class="env-card" id="envCard">
+    <div class="save-card-wrap">
+      <img class="fx" style="left:-2%;top:22%;width:44%;--r:-18deg" src="assets/img/bq/orchid.webp" alt="">
+      <img class="fx" style="left:102%;top:18%;width:42%;--r:16deg" src="assets/img/bq/burgundy.webp" alt="">
+      <div class="save-card">
         <span class="cc cc-tl"></span><span class="cc cc-tr"></span><span class="cc cc-bl"></span><span class="cc cc-br"></span>
-        <div class="card-face" id="cardFace">
-          <p class="std"><span class="script std-w">Save</span><span class="caps std-the">the</span><span class="script std-w">Date</span></p>
-          <p class="caps card-names">Fatah &amp; Gege</p>
-          <svg class="card-rule" viewBox="0 0 160 14" aria-hidden="true"><path d="M4 7 H62 M98 7 H156"/><path class="r-heart" d="M80 12 c-6 -4 -9 -6 -9 -9 c0 -2.4 3.4 -3.4 5 -1 l4 3 l4 -3 c1.6 -2.4 5 -1.4 5 1 c0 3 -3 5 -9 9z"/><circle cx="66" cy="7" r="1.6"/><circle cx="94" cy="7" r="1.6"/></svg>
-          <p class="caps card-date">12 . 12 . 2026</p>
-        </div>
+        <p class="std"><span class="script std-w">Save</span><span class="caps std-the">the</span><span class="script std-w">Date</span></p>
+        <p class="caps card-names">Fatah &amp; Gege</p>
+        <svg class="card-rule" viewBox="0 0 160 14" aria-hidden="true"><path d="M4 7 H62 M98 7 H156"/><path class="r-heart" d="M80 12 c-6 -4 -9 -6 -9 -9 c0 -2.4 3.4 -3.4 5 -1 l4 3 l4 -3 c1.6 -2.4 5 -1.4 5 1 c0 3 -3 5 -9 9z"/><circle cx="66" cy="7" r="1.6"/><circle cx="94" cy="7" r="1.6"/></svg>
+        <p class="caps card-date">12 . 12 . 2026</p>
       </div>
-
-      <svg class="env-pocket" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <path class="pk" d="M0 0 L50 52 L100 0 L100 100 L0 100 Z"/>
-        <path class="pk-bottom" d="M0 100 L50 52 L100 100 Z"/>
-        <path class="pk-line" d="M0 100 L50 52 L100 100"/>
-        <path class="pk-edge" d="M0 0 L50 52 L100 0"/>
-      </svg>
-      <div class="env-flap-wrap"><div class="env-flap"></div></div>
-
-      <button type="button" class="env-seal" id="openSeal" aria-label="Buka undangan">
-        <span class="seal-img"><img src="assets/img/seal-wine.webp" alt=""><span class="seal-txt" id="sealTxt">F&amp;G</span></span>
-      </button>
-
-      <picture class="fx fx-front" style="left:0%;top:76%;width:45%;--r:-16deg"><img src="assets/img/bq/peach.webp" alt=""></picture>
-      <picture class="fx fx-front" style="left:100%;top:78%;width:32%;--r:18deg;--f:-1"><img src="assets/img/bq/whitemix.webp" alt=""></picture>
+      <img class="fx fx-front" style="left:4%;top:86%;width:46%;--r:-14deg" src="assets/img/bq/peach.webp" alt="">
+      <img class="fx fx-front" style="left:98%;top:88%;width:34%;--r:16deg;--f:-1" src="assets/img/bq/whitemix.webp" alt="">
     </div>
 
-    <p class="cover-hint" id="coverHint">Ketuk segel</p>
-    <a class="btn btn-ghost to-invite" id="toInvite" href="https://undangan.zif.my.id/" hidden>Lihat undangan lengkap</a>
+    <a class="btn btn-ghost" href="https://undangan.zif.my.id/">Lihat undangan lengkap</a>
   </div>
-  <div class="glitch-veil" aria-hidden="true"></div>
 </section>
 
 <main id="main">
@@ -143,7 +121,7 @@
   </section>
 
   <!-- =====================================================
-       (coming next: the letter with the "G" wax seal goes here)
+       (coming next: the letter goes here)
        ===================================================== -->
 
 </main>

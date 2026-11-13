@@ -146,67 +146,18 @@
   }
 
   /* =====================================================
-     1. DECOY → TWIST
+     START: plain invitation card before Dec 9,
+     straight into the birthday from midnight on
      ===================================================== */
-  const decoy = $('#decoy');
-  const face = $('#cardFace');
-  const sealTxt = $('#sealTxt');
-  const recipient = $('.recipient');
-
-  async function glitchTo(html) {
-    decoy.classList.remove('is-glitching');
-    void decoy.offsetWidth;
-    decoy.classList.add('is-glitching');
-    face.classList.add('glitch');
-    await wait(220);
-    face.innerHTML = html;
-    face.classList.add('twist-text');
-    await wait(260);
-    face.classList.remove('glitch');
+  if (isLocked()) {
+    $('#waiting').hidden = false;
+    document.body.classList.add('is-locked');
+  } else {
+    setTimeout(() => {
+      watchReveals($('#hero'));
+      petalShower(110);
+    }, reduced ? 0 : 500);
   }
-
-  function scramble(el, finalText, ms = 700) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ&';
-    const t0 = performance.now();
-    return new Promise(res => {
-      const step = now => {
-        const k = Math.min(1, (now - t0) / ms);
-        if (k < 1) {
-          el.textContent = Array.from({ length: Math.max(1, finalText.length) }, () => chars[(Math.random() * chars.length) | 0]).join('');
-          requestAnimationFrame(step);
-        } else { el.textContent = finalText; res(); }
-      };
-      requestAnimationFrame(step);
-    });
-  }
-
-  $('#openSeal').addEventListener('click', async () => {
-    if (decoy.classList.contains('is-opening')) return;
-    decoy.classList.add('is-opening');
-    await wait(reduced ? 900 : 2600);
-
-    // Before her birthday the app is just a shortcut to the real invitation.
-    // (see "test mode" at the top to try the full surprise early)
-    if (isLocked()) {
-      $('#toInvite').hidden = false;
-      return;
-    }
-
-    decoy.classList.add('is-twist');
-    recipient.style.opacity = '0';
-    await glitchTo('<p class="twist-big">eh, bentar...</p>');
-    await wait(1500);
-    await glitchTo('<p class="twist-small">sebenarnya ini</p><p class="twist-big">bukan undangan</p>');
-    scramble(sealTxt, 'G', 900);
-    await wait(2300);
-    await glitchTo('<p class="twist-small">hari ini tuh hari kamu</p><p class="twist-big">Happy Birthday</p>');
-    await wait(2200);
-
-    petalShower(110);
-    decoy.classList.add('is-gone');
-    document.body.classList.remove('is-locked');
-    watchReveals($('#hero'));
-  });
 
   /* =====================================================
      3. CAKE: match → wish → blow

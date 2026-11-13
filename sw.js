@@ -1,6 +1,6 @@
 // Offline support so the page opens even without internet at midnight.
 // Bump VERSION whenever files change (e.g. after adding photos).
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = 'gege-' + VERSION;
 const CORE = [
   './',
@@ -10,7 +10,6 @@ const CORE = [
   './assets/js/birthday.js',
   './assets/img/bg-floral.webp',
   './assets/img/bg-floral.jpg',
-  './assets/img/seal-wine.webp',
   './assets/img/icon-192.png',
   './assets/img/icon-512.png',
   './assets/img/bq/orchid.webp',
