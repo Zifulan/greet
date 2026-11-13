@@ -80,7 +80,6 @@ button { font: inherit; }
 .recipient p { margin: 0; }
 .recipient .caps { font-size: .68rem; opacity: .8; }
 .recipient-name { margin-top: .35rem !important; font-size: 2rem; line-height: 1.3; text-shadow: 0 2px 12px rgba(0,0,0,.4); }
-.draft-note { margin-top: .4rem !important; font-family: var(--font-hand); font-size: 1.15rem; opacity: .7; }
 
 .envelope {
   position: relative;
@@ -177,7 +176,6 @@ button { font: inherit; }
 .decoy.is-opening .env-card { z-index: 2; }
 .decoy.is-opening .env-seal { animation: none; pointer-events: none; cursor: default; }
 .decoy.is-opening .cover-hint { animation: none; opacity: 0; transition: opacity .3s; }
-.decoy.is-opening .draft-note { opacity: 0; transition: opacity .4s; }
 @keyframes flap-open {
   0% { transform: scaleY(1); z-index: 4; }
   49% { z-index: 4; }
@@ -192,6 +190,11 @@ button { font: inherit; }
     background-size: 11px 11px, auto;
   }
 }
+
+/* before Dec 9: link through to the real invitation */
+.to-invite { position: relative; z-index: 8; margin-top: -2.2rem; animation: fade-in .8s var(--ease) both; }
+.to-invite[hidden] { display: none; }
+@keyframes fade-in { from { opacity: 0; transform: translateY(8px); } }
 
 /* the twist */
 .decoy.is-twist .env-card { left: 8%; right: 8%; }

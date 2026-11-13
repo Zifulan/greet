@@ -32,7 +32,7 @@
 
   /* ---------- midnight handover ----------
      Samsung Routines may bring an app forward that was already open (still showing the
-     locked draft). Reload into the real thing as soon as it's past midnight. */
+     locked invitation). Reload into the real thing as soon as it's past midnight. */
   function reloadIfUnlocked() {
     if (lockedAtLoad && !isLocked()) location.reload();
   }
@@ -185,14 +185,10 @@
     decoy.classList.add('is-opening');
     await wait(reduced ? 900 : 2600);
 
-    // Before her birthday the page behaves like a plain invitation draft.
+    // Before her birthday the app is just a shortcut to the real invitation.
     // (see "test mode" at the top to try the full surprise early)
     if (isLocked()) {
-      const hint = $('#coverHint');
-      hint.textContent = 'Masih draf ya, belum final. Nanti aku kabarin.';
-      hint.style.animation = 'none';
-      hint.style.opacity = '.85';
-      hint.style.visibility = 'visible';
+      $('#toInvite').hidden = false;
       return;
     }
 
