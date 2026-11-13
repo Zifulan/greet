@@ -4,7 +4,46 @@
   const wait = ms => new Promise(r => setTimeout(r, ms));
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const UNLOCK_AT = Date.parse('2026-12-09T00:00:00+07:00'); // midnight WIB
-  const PREVIEW = new URLSearchParams(location.search).has('preview');
+
+  /* ---------- test mode ----------
+     Open the site once in Chrome with ?preview  → full surprise unlocked for 30 minutes
+     (the installed app shares this, so you can test it there too).
+     ?preview=off ends it immediately. It always switches itself off after 30 minutes. */
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+    del(k) { try { localStorage.removeItem(k); } catch {} },
+  };
+  const qs = new URLSearchParams(location.search);
+  if (qs.has('preview')) {
+    if (qs.get('preview') === 'off') store.del('previewUntil');
+    else store.set('previewUntil', String(Date.now() + 30 * 60 * 1000));
+  }
+  const previewUntil = Number(store.get('previewUntil') || 0);
+  const PREVIEW = Date.now() < previewUntil;
+  const isLocked = () => Date.now() < UNLOCK_AT && Date.now() >= Number(store.get('previewUntil') || 0);
+  const lockedAtLoad = isLocked();
+  if (PREVIEW) {
+    const tag = document.createElement('div');
+    tag.className = 'preview-tag';
+    tag.textContent = `TEST MODE · mati ${new Date(previewUntil).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`;
+    document.body.appendChild(tag);
+  }
+
+  /* ---------- midnight handover ----------
+     Samsung Routines may bring an app forward that was already open (still showing the
+     locked draft). Reload into the real thing as soon as it's past midnight. */
+  function reloadIfUnlocked() {
+    if (lockedAtLoad && !isLocked()) location.reload();
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) reloadIfUnlocked(); });
+  addEventListener('pageshow', reloadIfUnlocked);
+  addEventListener('focus', reloadIfUnlocked);
+  setInterval(reloadIfUnlocked, 15000);
+
+  if ('serviceWorker' in navigator) {
+    addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
 
   /* =====================================================
      PETALS (canvas)
@@ -147,8 +186,8 @@
     await wait(reduced ? 900 : 2600);
 
     // Before her birthday the page behaves like a plain invitation draft.
-    // Add ?preview to the URL to test the full surprise early.
-    if (Date.now() < UNLOCK_AT && !PREVIEW) {
+    // (see "test mode" at the top to try the full surprise early)
+    if (isLocked()) {
       const hint = $('#coverHint');
       hint.textContent = 'Masih draf ya, belum final. Nanti aku kabarin.';
       hint.style.animation = 'none';
