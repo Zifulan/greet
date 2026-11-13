@@ -26,7 +26,7 @@
   if (PREVIEW) {
     const tag = document.createElement('div');
     tag.className = 'preview-tag';
-    tag.textContent = `TEST MODE · mati ${new Date(previewUntil).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`;
+    tag.textContent = `TEST MODE · ends ${new Date(previewUntil).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
     document.body.appendChild(tag);
   }
 
@@ -181,7 +181,7 @@
     if (state !== 'idle') return;
     state = 'lighting';
     btnMatch.hidden = true;
-    say('Hati-hati ya, panas.');
+    say('Careful, it\'s hot.');
 
     const stage = $('.cake-stage').getBoundingClientRect();
     const spots = candles.map(c => {
@@ -213,7 +213,7 @@
     match.classList.remove('burning', 'show');
 
     state = 'wish';
-    say('Sekarang pejamkan mata, make a wish dulu. Pelan-pelan aja, aku tunggu.');
+    say('Now close your eyes and make a wish. Take your time, I\'ll wait.');
     btnWish.hidden = false;
     btnWish.disabled = true;
     setTimeout(() => { btnWish.disabled = false; }, reduced ? 800 : 3500);
@@ -223,7 +223,7 @@
     if (state !== 'wish') return;
     state = 'blow';
     btnWish.hidden = true;
-    say('Oke, sekarang tiup lilinnya! Tap lilinnya satu per satu, atau tiup beneran ke HP kamu.');
+    say('Now blow out the candles! Tap them one by one, or really blow into your phone.');
     if (navigator.mediaDevices?.getUserMedia) btnMic.hidden = false;
   });
 
@@ -233,8 +233,8 @@
     c.classList.add('out');
     const left = candles.filter(x => x.classList.contains('lit')).length;
     if (left === 0) finish();
-    else if (left === 1) say('Satu lagi...');
-    else say(`${left} lagi. Tiup yang kenceng!`);
+    else if (left === 1) say('One more...');
+    else say(`${left} to go. Blow harder!`);
   }
   candles.forEach(c => c.addEventListener('click', () => blowOut(c)));
 
@@ -243,7 +243,7 @@
     stopMic();
     btnMic.hidden = true;
     section.classList.remove('is-lit');
-    say('Wish kamu udah terkirim.');
+    say('Your wish is on its way.');
     petalBurst(170);
     await wait(1100);
     wishCard.classList.add('show');
@@ -255,7 +255,7 @@
     wishCard.classList.remove('show');
     state = 'idle';
     btnMatch.hidden = false;
-    say('Lilinnya belum nyala. Ambil koreknya dulu ya.');
+    say('The candles aren\'t lit yet. Grab the match first.');
     section.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
@@ -265,7 +265,7 @@
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
-      say('Mic-nya nggak bisa dipakai. Tap lilinnya aja ya.');
+      say('The mic isn\'t available. Just tap the candles.');
       btnMic.hidden = true;
       return;
     }
@@ -274,7 +274,7 @@
     an.fftSize = 512;
     actx.createMediaStreamSource(stream).connect(an);
     const buf = new Uint8Array(an.fftSize);
-    btnMic.textContent = 'Lagi dengerin... tiup!';
+    btnMic.textContent = 'Listening... blow!';
     let strong = 0;
     const loop = () => {
       an.getByteTimeDomainData(buf);
@@ -296,7 +296,7 @@
     stream?.getTracks().forEach(t => t.stop());
     actx?.close();
     stream = actx = null;
-    btnMic.textContent = 'Tiup lewat mic';
+    btnMic.textContent = 'Blow into the mic';
   }
   btnMic.addEventListener('click', () => (stream ? stopMic() : startMic()));
 
