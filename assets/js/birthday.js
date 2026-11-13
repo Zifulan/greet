@@ -50,7 +50,7 @@
      ===================================================== */
   const cv = $('#petals');
   const g = cv.getContext('2d');
-  const petalColors = ['#4A1C24', '#6B3646', '#8E2430', '#D9AEB4', '#EBD3D4', '#FAF6EE', '#A3AA87', '#7F876A'];
+  const petalColors = ['#800020', '#A33A4E', '#5C1A1B', '#E7A9B4', '#F5EAD8', '#3F6B4A', '#5A8C64', '#8B5E3C'];
   let petals = [], running = false;
 
   function resize() {
@@ -140,7 +140,8 @@
   }, { threshold: .2 });
   function watchReveals(root = document) {
     $$('.reveal', root).forEach((el, i) => {
-      el.style.transitionDelay = (el.closest('.hero') ? i * 220 : 0) + 'ms';
+      const sib = el.classList.contains('polaroid') ? [...el.parentElement.children].indexOf(el) : 0;
+      el.style.transitionDelay = (el.closest('.hero') ? i * 220 : sib * 160) + 'ms';
       io.observe(el);
     });
   }
@@ -154,10 +155,121 @@
     document.body.classList.add('is-locked');
   } else {
     setTimeout(() => {
-      watchReveals($('#hero'));
-      petalShower(110);
+      watchReveals($('.hero'));
+      petalShower(70);
     }, reduced ? 0 : 500);
   }
+
+  /* =====================================================
+     SKY: night → morning → afternoon → sunset → night
+     Each .scene has data-time; colours blend as she scrolls.
+     ===================================================== */
+  const TIMES = {
+    night:   { top: '#12070C', bottom: '#2A0E12', fg: '#F5EAD8', soft: 'rgba(245,234,216,.72)', stars: 1,   orb: '#F2E6CF', glow: 'rgba(242,230,207,.22)', orbY: 6, orbOp: .55, accent: '#E7A9B4' },
+    morning: { top: '#EADBC2', bottom: '#F7EFE2', fg: '#3B1A1D', soft: 'rgba(59,26,29,.72)',    stars: 0,   orb: '#FFF3D6', glow: 'rgba(255,226,170,.55)', orbY: 8, orbOp: .9,  accent: '#800020' },
+    noon:    { top: '#C9D3BF', bottom: '#F1EADC', fg: '#24301F', soft: 'rgba(36,48,31,.72)',    stars: 0,   orb: '#FFF8E6', glow: 'rgba(255,240,200,.6)',  orbY: 5, orbOp: .9,  accent: '#3F6B4A' },
+    sunset:  { top: '#5C1A1B', bottom: '#C0704E', fg: '#FBEFE0', soft: 'rgba(251,239,224,.78)', stars: .25, orb: '#F6B47C', glow: 'rgba(246,160,100,.5)',  orbY: 90, orbOp: .9, accent: '#F6C9A8' },
+  };
+  const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const rgba = c => c.startsWith('#') ? [...hex(c), 1] : c.match(/[\d.]+/g).map(Number);
+  const mix = (a, b, t) => {
+    const x = rgba(a), y = rgba(b);
+    const m = x.map((v, i) => v + (y[i] - v) * t);
+    return `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${m[3].toFixed(3)})`;
+  };
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const scenes = $$('.scene[data-time]');
+  const rootStyle = document.documentElement.style;
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+
+  function paintSky() {
+    const mid = scrollY + innerHeight / 2;
+    const centers = scenes.map(sc => sc.offsetTop + sc.offsetHeight / 2);
+    let i = 0;
+    while (i < centers.length - 1 && mid > centers[i + 1]) i++;
+    const a = TIMES[scenes[i].dataset.time];
+    const b = TIMES[scenes[Math.min(i + 1, scenes.length - 1)].dataset.time];
+    let t = i < centers.length - 1 ? (mid - centers[i]) / (centers[i + 1] - centers[i]) : 0;
+    t = Math.max(0, Math.min(1, t));
+    t = t * t * (3 - 2 * t); // smoothstep
+    rootStyle.setProperty('--sky-top', mix(a.top, b.top, t));
+    rootStyle.setProperty('--sky-bottom', mix(a.bottom, b.bottom, t));
+    rootStyle.setProperty('--fg', mix(a.fg, b.fg, t));
+    rootStyle.setProperty('--fg-soft', mix(a.soft, b.soft, t));
+    rootStyle.setProperty('--accent', mix(a.accent, b.accent, t));
+    rootStyle.setProperty('--stars', lerp(a.stars, b.stars, t).toFixed(3));
+    rootStyle.setProperty('--orb-color', mix(a.orb, b.orb, t));
+    rootStyle.setProperty('--orb-glow', mix(a.glow, b.glow, t));
+    rootStyle.setProperty('--orb-y', lerp(a.orbY, b.orbY, t).toFixed(1) + '%');
+    rootStyle.setProperty('--orb-op', lerp(a.orbOp, b.orbOp, t).toFixed(3));
+    if (themeMeta) themeMeta.content = mix(a.top, b.top, t);
+  }
+  let skyQueued = false;
+  addEventListener('scroll', () => {
+    if (skyQueued) return;
+    skyQueued = true;
+    requestAnimationFrame(() => { skyQueued = false; paintSky(); });
+  }, { passive: true });
+  addEventListener('resize', paintSky);
+  paintSky();
+
+  // stars
+  const starBox = $('#stars');
+  for (let k = 0; k < 90; k++) {
+    const st = document.createElement('i');
+    if (Math.random() < .15) st.className = 'big';
+    st.style.left = (Math.random() * 100) + '%';
+    st.style.top = (Math.random() * 75) + '%';
+    st.style.animationDelay = (-Math.random() * 3).toFixed(2) + 's';
+    st.style.animationDuration = (2 + Math.random() * 3).toFixed(2) + 's';
+    starBox.appendChild(st);
+  }
+
+  /* =====================================================
+     MUSIC: Night Changes starts on her first tap
+     (phones don't allow sound before a tap)
+     ===================================================== */
+  const song = $('#song');
+  const musicBtn = $('#musicBtn');
+  let songOk = true;
+  song.addEventListener('error', () => { songOk = false; musicBtn.hidden = true; });
+
+  function fadeTo(target, ms = 1500) {
+    const from = song.volume, t0 = performance.now();
+    const step = now => {
+      const k = Math.min(1, (now - t0) / ms);
+      song.volume = from + (target - from) * k;
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  async function playSong() {
+    if (!songOk || !song.paused) return;
+    try {
+      song.volume = 0;
+      await song.play();
+      fadeTo(1);
+      musicBtn.hidden = false;
+      musicBtn.classList.remove('paused');
+    } catch { /* no file yet, or blocked: the page works without it */ }
+  }
+  musicBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    if (song.paused) { song.play(); musicBtn.classList.remove('paused'); musicBtn.setAttribute('aria-label', 'Pause music'); }
+    else { song.pause(); musicBtn.classList.add('paused'); musicBtn.setAttribute('aria-label', 'Play music'); }
+  });
+
+  $('#startBtn').addEventListener('click', () => {
+    playSong();
+    $('#story').scrollIntoView({ behavior: 'smooth' });
+  });
+  // if she scrolls past the button instead, start the song on her first tap anywhere
+  addEventListener('pointerup', () => { if (!isLocked()) playSong(); }, { once: true });
+
+  /* =====================================================
+     POLAROIDS: tap to flip
+     ===================================================== */
+  $$('.polaroid.flip').forEach(pl => pl.addEventListener('click', () => pl.classList.toggle('flipped')));
 
   /* =====================================================
      3. CAKE: match → wish → blow
@@ -300,5 +412,5 @@
   }
   btnMic.addEventListener('click', () => (stream ? stopMic() : startMic()));
 
-  watchReveals($('#cake'));
+  $$('.scene:not(.hero)').forEach(sc => watchReveals(sc));
 })();

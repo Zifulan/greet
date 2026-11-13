@@ -1,6 +1,6 @@
 // Offline support so the page opens even without internet at midnight.
 // Bump VERSION whenever files change (e.g. after adding photos).
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE = 'gege-' + VERSION;
 const CORE = [
   './',
@@ -16,20 +16,18 @@ const CORE = [
   './assets/img/bq/burgundy.webp',
   './assets/img/bq/peach.webp',
   './assets/img/bq/whitemix.webp',
-  './assets/img/bq/spray-a.webp',
-  './assets/img/bq/spray-b.webp',
-  './assets/img/bq/orchid-wine.webp',
-  './assets/img/bq/anthurium-green.webp',
-  './assets/img/bq/mum.webp',
-  './assets/img/bq/orchid-spray.webp',
+  './assets/photos/sd-fatah.webp',
+  './assets/photos/sd-gege.webp',
 ];
-const FONTS = 'https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Pinyon+Script&display=swap';
+const OPTIONAL = ['./assets/audio/night-changes.mp3']; // cached if present
+const FONTS = 'https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Cormorant+Garamond:wght@500;600&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Pinyon+Script&display=swap';
 
 self.addEventListener('install', e => {
   e.waitUntil((async () => {
     const c = await caches.open(CACHE);
     await c.addAll(CORE);
-    try { // fonts: cache the stylesheet and every font file it points to
+    await Promise.all(OPTIONAL.map(u => fetch(u).then(r => r.status === 200 && c.put(u, r)).catch(() => {})));
+    try { // fonts: the stylesheet and every font file it points to
       const css = await fetch(FONTS);
       await c.put(FONTS, css.clone());
       const urls = [...(await css.text()).matchAll(/url\((https:[^)]+)\)/g)].map(m => m[1]);
@@ -53,7 +51,7 @@ self.addEventListener('fetch', e => {
     const c = await caches.open(CACHE);
     try {
       const res = await fetch(e.request);
-      if (res.ok || res.type === 'opaque') c.put(e.request, res.clone());
+      if (res.status === 200 || res.type === 'opaque') c.put(e.request, res.clone()).catch(() => {});
       return res;
     } catch {
       return (await c.match(e.request, { ignoreSearch: true })) || (await c.match('./index.html'));
