@@ -1,350 +1,154 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Happy Birthday, Gege</title>
+<meta name="robots" content="noindex, nofollow">
+<title>Undangan Fatah &amp; Gege</title>
+<meta name="theme-color" content="#2A1418">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --burgundy: #800020;
-    --maroon: #5c1a1b;
-    --maroon-deep: #3b0d10;
-    --green: #2f5d3a;
-    --green-dark: #1f3d27;
-    --brown: #6b4226;
-    --brown-light: #8b5e3c;
-    --cream: #f5ead8;
-    --cream-dim: #e6d3b8;
-    --flame: #ffcf6b;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
-  body {
-    font-family: "Lora", Georgia, serif;
-    color: var(--cream);
-    background:
-      radial-gradient(ellipse at top, rgba(128,0,32,.55), transparent 60%),
-      radial-gradient(ellipse at bottom, rgba(47,93,58,.45), transparent 60%),
-      var(--maroon-deep);
-    min-height: 100vh;
-    overflow-x: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 32px 16px 48px;
-    -webkit-tap-highlight-color: transparent;
-  }
-  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
-
-  header { text-align: center; margin-bottom: 8px; }
-  h1 {
-    font-family: "Dancing Script", cursive;
-    font-size: clamp(2.6rem, 11vw, 4.5rem);
-    line-height: 1.05;
-    color: var(--cream);
-    text-shadow: 0 3px 0 var(--burgundy), 0 6px 18px rgba(0,0,0,.4);
-  }
-  .sub { margin-top: 10px; color: var(--cream-dim); font-style: italic; font-size: 1.05rem; }
-
-  /* ---------- cake ---------- */
-  .stage { position: relative; width: min(340px, 92vw); margin: 28px auto 8px; }
-  .cake { position: relative; width: 100%; padding-top: 120px; }
-  .candles {
-    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-    display: flex; gap: 22px; height: 120px; align-items: flex-end; z-index: 3;
-  }
-  .candle {
-    position: relative; width: 14px; height: 62px; border-radius: 4px 4px 2px 2px; cursor: pointer;
-    background: repeating-linear-gradient(135deg, var(--cream) 0 8px, var(--green) 8px 14px);
-    box-shadow: inset -3px 0 0 rgba(0,0,0,.15);
-  }
-  .candle::before { /* wick */
-    content: ""; position: absolute; top: -9px; left: 50%; width: 2px; height: 9px;
-    background: #2a1a10; transform: translateX(-50%);
-  }
-  .candle::after { /* bigger tap target */
-    content: ""; position: absolute; inset: -40px -12px -6px;
-  }
-  .flame {
-    position: absolute; left: 50%; top: -38px; width: 16px; height: 28px;
-    transform: translateX(-50%); transform-origin: 50% 90%;
-    background: radial-gradient(ellipse at 50% 70%, #fff7d6 0 20%, var(--flame) 45%, #ff8a3d 75%, transparent 76%);
-    border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
-    filter: drop-shadow(0 0 10px rgba(255,190,90,.9)) drop-shadow(0 0 24px rgba(255,150,60,.5));
-    animation: flicker 1.1s ease-in-out infinite alternate;
-    transition: opacity .35s, transform .35s;
-  }
-  .candle:nth-child(2) .flame { animation-delay: -.3s; }
-  .candle:nth-child(3) .flame { animation-delay: -.6s; }
-  .candle:nth-child(4) .flame { animation-delay: -.15s; }
-  .candle:nth-child(5) .flame { animation-delay: -.8s; }
-  @keyframes flicker {
-    0%   { transform: translateX(-50%) scale(1, 1) rotate(-2deg); }
-    50%  { transform: translateX(-50%) scale(.92, 1.08) rotate(2deg); }
-    100% { transform: translateX(-50%) scale(1.04, .95) rotate(-1deg); }
-  }
-  .candle.out .flame { opacity: 0; transform: translateX(-50%) scale(.2, .4); animation: none; }
-  .smoke {
-    position: absolute; left: 50%; top: -20px; width: 8px; height: 8px; border-radius: 50%;
-    background: rgba(230,215,195,.55); transform: translateX(-50%); opacity: 0; pointer-events: none;
-  }
-  .candle.out .smoke { animation: smoke 1.6s ease-out forwards; }
-  @keyframes smoke {
-    0%   { opacity: .8; transform: translate(-50%, 0) scale(1); }
-    100% { opacity: 0; transform: translate(-30%, -60px) scale(4); }
-  }
-
-  .tier { position: relative; margin: 0 auto; border-radius: 14px 14px 8px 8px; }
-  .tier.top {
-    width: 70%; height: 74px; z-index: 2;
-    background: linear-gradient(180deg, var(--burgundy), #66001a);
-    box-shadow: inset 0 -8px 0 rgba(0,0,0,.18);
-  }
-  .tier.bottom {
-    width: 100%; height: 100px; margin-top: -4px;
-    background: linear-gradient(180deg, var(--brown-light), var(--brown));
-    box-shadow: inset 0 -10px 0 rgba(0,0,0,.2);
-  }
-  .drip { /* cream frosting drip on top of each tier */
-    position: absolute; top: 0; left: 0; right: 0; height: 22px; border-radius: 14px 14px 0 0;
-    background:
-      radial-gradient(circle at 10% 100%, var(--cream) 0 9px, transparent 10px),
-      radial-gradient(circle at 30% 100%, var(--cream) 0 12px, transparent 13px),
-      radial-gradient(circle at 52% 100%, var(--cream) 0 8px, transparent 9px),
-      radial-gradient(circle at 72% 100%, var(--cream) 0 13px, transparent 14px),
-      radial-gradient(circle at 92% 100%, var(--cream) 0 9px, transparent 10px),
-      linear-gradient(var(--cream), var(--cream)) top / 100% 12px no-repeat;
-  }
-  .berries { position: absolute; bottom: 18px; left: 0; right: 0; display: flex; justify-content: space-around; }
-  .berries span {
-    width: 14px; height: 14px; border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #c2334f, var(--maroon));
-  }
-  .leaves { position: absolute; bottom: 22px; left: 0; right: 0; display: flex; justify-content: space-evenly; }
-  .leaves span {
-    width: 18px; height: 10px; border-radius: 0 100% 0 100%;
-    background: var(--green); transform: rotate(-20deg);
-  }
-  .leaves span:nth-child(even) { transform: rotate(20deg) scaleX(-1); }
-  .plate {
-    width: 115%; height: 16px; margin: -2px 0 0 -7.5%;
-    background: linear-gradient(180deg, var(--cream-dim), #b9a283);
-    border-radius: 50%; box-shadow: 0 10px 24px rgba(0,0,0,.45);
-  }
-
-  /* ---------- controls ---------- */
-  .hint { text-align: center; margin-top: 22px; color: var(--cream-dim); min-height: 1.5em; }
-  .btn {
-    display: inline-flex; align-items: center; gap: 8px; margin-top: 14px;
-    font: 500 1rem "Lora", serif; color: var(--cream);
-    background: var(--green); border: 1px solid rgba(245,234,216,.25);
-    padding: 12px 20px; border-radius: 999px; cursor: pointer;
-    box-shadow: 0 4px 0 var(--green-dark); transition: transform .1s, box-shadow .1s;
-  }
-  .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--green-dark); }
-  .btn.listening { background: var(--burgundy); box-shadow: 0 4px 0 var(--maroon); }
-  .controls { text-align: center; }
-
-  /* ---------- message card ---------- */
-  .card {
-    width: min(520px, 100%); margin-top: 28px; padding: 28px 24px 30px;
-    background: var(--cream); color: var(--maroon);
-    border-radius: 18px; border-top: 8px solid var(--burgundy);
-    box-shadow: 0 18px 40px rgba(0,0,0,.45);
-    opacity: 0; transform: translateY(30px) scale(.97); pointer-events: none;
-    transition: opacity .8s ease, transform .8s cubic-bezier(.2,.8,.2,1);
-  }
-  .card.show { opacity: 1; transform: none; pointer-events: auto; }
-  .card h2 { font-family: "Dancing Script", cursive; font-size: 2.2rem; color: var(--burgundy); margin-bottom: 12px; }
-  .card p { line-height: 1.7; margin-bottom: 14px; color: #4a2a1c; }
-  .card .sign { font-family: "Dancing Script", cursive; font-size: 1.6rem; color: var(--green); text-align: right; margin: 18px 0 0; }
-  .again { background: var(--brown); box-shadow: 0 4px 0 #4a2d19; }
-  .again:active { box-shadow: 0 1px 0 #4a2d19; }
-
-  @media (prefers-reduced-motion: reduce) {
-    .flame { animation: none; }
-    .card { transition: opacity .3s; transform: none; }
-  }
-</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Pinyon+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/birthday.css">
 </head>
-<body>
-<canvas id="confetti"></canvas>
+<body class="is-locked">
+<canvas id="petals" aria-hidden="true"></canvas>
 
-<header>
-  <h1>Happy Birthday,<br>Gege</h1>
-  <p class="sub">Make a wish first…</p>
-</header>
+<!-- =====================================================
+     1. DECOY: looks exactly like the wedding invitation
+     ===================================================== -->
+<section class="decoy" id="decoy" aria-label="Undangan">
+  <div class="decoy-inner">
+    <div class="recipient">
+      <p class="caps">Kepada Yth.</p>
+      <p class="recipient-name script">Gendhys Azizah Duanty</p>
+      <p class="draft-note">draf final, tolong dicek ya sayang</p>
+    </div>
 
-<div class="stage">
-  <div class="cake">
-    <div class="candles" id="candles">
-      <div class="candle"><div class="flame"></div><div class="smoke"></div></div>
-      <div class="candle"><div class="flame"></div><div class="smoke"></div></div>
-      <div class="candle"><div class="flame"></div><div class="smoke"></div></div>
-      <div class="candle"><div class="flame"></div><div class="smoke"></div></div>
-      <div class="candle"><div class="flame"></div><div class="smoke"></div></div>
+    <div class="envelope" id="envelope">
+      <picture class="fx fx-back" style="left:-5%;top:47%;width:39%;--r:-20deg"><img src="assets/img/bq/orchid.webp" alt=""></picture>
+      <picture class="fx fx-back" style="left:105%;top:40%;width:38%;--r:18deg"><img src="assets/img/bq/burgundy.webp" alt=""></picture>
+
+      <div class="env-back"></div>
+
+      <div class="env-card" id="envCard">
+        <span class="cc cc-tl"></span><span class="cc cc-tr"></span><span class="cc cc-bl"></span><span class="cc cc-br"></span>
+        <div class="card-face" id="cardFace">
+          <p class="std"><span class="script std-w">Save</span><span class="caps std-the">the</span><span class="script std-w">Date</span></p>
+          <p class="caps card-names">Fatah &amp; Gege</p>
+          <svg class="card-rule" viewBox="0 0 160 14" aria-hidden="true"><path d="M4 7 H62 M98 7 H156"/><path class="r-heart" d="M80 12 c-6 -4 -9 -6 -9 -9 c0 -2.4 3.4 -3.4 5 -1 l4 3 l4 -3 c1.6 -2.4 5 -1.4 5 1 c0 3 -3 5 -9 9z"/><circle cx="66" cy="7" r="1.6"/><circle cx="94" cy="7" r="1.6"/></svg>
+          <p class="caps card-date">12 . 12 . 2026</p>
+        </div>
+      </div>
+
+      <svg class="env-pocket" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path class="pk" d="M0 0 L50 52 L100 0 L100 100 L0 100 Z"/>
+        <path class="pk-bottom" d="M0 100 L50 52 L100 100 Z"/>
+        <path class="pk-line" d="M0 100 L50 52 L100 100"/>
+        <path class="pk-edge" d="M0 0 L50 52 L100 0"/>
+      </svg>
+      <div class="env-flap-wrap"><div class="env-flap"></div></div>
+
+      <button type="button" class="env-seal" id="openSeal" aria-label="Buka undangan">
+        <span class="seal-img"><img src="assets/img/seal-wine.webp" alt=""><span class="seal-txt" id="sealTxt">F&amp;G</span></span>
+      </button>
+
+      <picture class="fx fx-front" style="left:0%;top:76%;width:45%;--r:-16deg"><img src="assets/img/bq/peach.webp" alt=""></picture>
+      <picture class="fx fx-front" style="left:100%;top:78%;width:32%;--r:18deg;--f:-1"><img src="assets/img/bq/whitemix.webp" alt=""></picture>
     </div>
-    <div class="tier top">
-      <div class="drip"></div>
-      <div class="berries"><span></span><span></span><span></span><span></span></div>
-    </div>
-    <div class="tier bottom">
-      <div class="drip"></div>
-      <div class="leaves"><span></span><span></span><span></span><span></span><span></span><span></span></div>
-    </div>
-    <div class="plate"></div>
+
+    <p class="cover-hint" id="coverHint">Ketuk segel</p>
   </div>
-</div>
-
-<div class="controls">
-  <p class="hint" id="hint">Tap the candles to blow them out 🕯️</p>
-  <button class="btn" id="micBtn" type="button">🌬️ Or blow into your mic</button>
-</div>
-
-<section class="card" id="card" aria-live="polite">
-  <h2>Happy Birthday, my love</h2>
-  <!-- ✏️ Write your own message here -->
-  <p>Another year of you, and I'm the lucky one who gets to be here for it.</p>
-  <p>Thank you for every laugh, every late-night talk, and every ordinary day you make feel special. I hope this year gives you everything you've been wishing for — and a little more.</p>
-  <p>I love you, today and always.</p>
-  <p class="sign">— Yours ♥</p>
-  <div style="text-align:center"><button class="btn again" id="again" type="button">🕯️ Light the candles again</button></div>
+  <div class="glitch-veil" aria-hidden="true"></div>
 </section>
 
-<script>
-(() => {
-  const candles = [...document.querySelectorAll('.candle')];
-  const hint = document.getElementById('hint');
-  const card = document.getElementById('card');
-  const micBtn = document.getElementById('micBtn');
-  let done = false;
+<main id="main">
 
-  function blowOut(c) {
-    if (c.classList.contains('out')) return;
-    c.classList.add('out');
-    const left = candles.filter(x => !x.classList.contains('out')).length;
-    if (left === 0) celebrate();
-    else hint.textContent = left === 1 ? 'Just one more…' : `${left} candles to go…`;
-  }
-  candles.forEach(c => c.addEventListener('click', () => blowOut(c)));
+  <!-- =====================================================
+       2. REVEAL
+       ===================================================== -->
+  <section class="hero" id="hero">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <img class="hero-spray hs-l" src="assets/img/bq/spray-a.webp" alt="" aria-hidden="true">
+    <img class="hero-spray hs-r" src="assets/img/bq/spray-b.webp" alt="" aria-hidden="true">
+    <div class="hero-inner">
+      <p class="caps hero-date reveal">09 . 12 . 2026</p>
+      <h1 class="script hero-title reveal">Selamat Ulang Tahun</h1>
+      <p class="hero-name reveal">Gege</p>
+      <svg class="card-rule hero-rule reveal" viewBox="0 0 160 14" aria-hidden="true"><path d="M4 7 H62 M98 7 H156"/><path class="r-heart" d="M80 12 c-6 -4 -9 -6 -9 -9 c0 -2.4 3.4 -3.4 5 -1 l4 3 l4 -3 c1.6 -2.4 5 -1.4 5 1 c0 3 -3 5 -9 9z"/><circle cx="66" cy="7" r="1.6"/><circle cx="94" cy="7" r="1.6"/></svg>
+      <p class="hero-copy reveal">Maaf ya, aku bohong dikit.<br>Undangannya aman kok, nggak ada yang salah.<br>Yang ini <em>khusus buat kamu</em>, bukan buat tamu.</p>
+      <a class="btn btn-ghost reveal" href="#cake">Lanjut ke bawah</a>
+    </div>
+    <p class="scroll-cue" aria-hidden="true">gulir ke bawah</p>
+  </section>
 
-  function celebrate() {
-    if (done) return;
-    done = true;
-    stopMic();
-    micBtn.hidden = true;
-    hint.textContent = '🎉 Your wish is on its way 🎉';
-    burst();
-    setTimeout(() => {
-      card.classList.add('show');
-      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 900);
-  }
+  <!-- =====================================================
+       (coming next: polaroid wall + reasons jar go here)
+       ===================================================== -->
 
-  document.getElementById('again').addEventListener('click', () => {
-    candles.forEach(c => c.classList.remove('out'));
-    card.classList.remove('show');
-    done = false;
-    micBtn.hidden = !navigator.mediaDevices?.getUserMedia;
-    hint.textContent = 'Tap the candles to blow them out 🕯️';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+  <!-- =====================================================
+       3. CAKE
+       ===================================================== -->
+  <section class="cake-section" id="cake">
+    <h2 class="script section-title reveal">Kue buat kamu</h2>
+    <p class="step-text reveal" id="stepText">Lilinnya belum nyala. Ambil koreknya dulu ya.</p>
 
-  /* ---------- microphone blowing ---------- */
-  let stream, ctx, raf;
-  async function startMic() {
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
-      hint.textContent = "Couldn't use the mic — tapping works too!";
-      return;
-    }
-    ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const analyser = ctx.createAnalyser();
-    analyser.fftSize = 512;
-    ctx.createMediaStreamSource(stream).connect(analyser);
-    const data = new Uint8Array(analyser.fftSize);
-    micBtn.classList.add('listening');
-    micBtn.textContent = '👂 Listening… blow!';
-    hint.textContent = 'Blow gently at your phone 🌬️';
-    let strong = 0;
-    const loop = () => {
-      analyser.getByteTimeDomainData(data);
-      let sum = 0;
-      for (const v of data) { const d = (v - 128) / 128; sum += d * d; }
-      const rms = Math.sqrt(sum / data.length);
-      strong = rms > 0.12 ? strong + 1 : Math.max(0, strong - 1);
-      if (strong > 6) {
-        strong = 0;
-        const lit = candles.filter(c => !c.classList.contains('out'));
-        if (lit.length) blowOut(lit[Math.floor(Math.random() * lit.length)]);
-      }
-      raf = requestAnimationFrame(loop);
-    };
-    loop();
-  }
-  function stopMic() {
-    cancelAnimationFrame(raf);
-    if (stream) stream.getTracks().forEach(t => t.stop());
-    if (ctx) ctx.close();
-    stream = ctx = null;
-    micBtn.classList.remove('listening');
-    micBtn.textContent = '🌬️ Or blow into your mic';
-  }
-  micBtn.addEventListener('click', () => (stream ? stopMic() : startMic()));
-  if (!navigator.mediaDevices?.getUserMedia) micBtn.hidden = true;
+    <div class="cake-stage">
+      <div class="cake" id="cakeEl">
+        <div class="candles" id="candles">
+          <div class="candle"><span class="wick"></span><span class="flame"></span><span class="smoke"></span></div>
+          <div class="candle tall"><span class="wick"></span><span class="flame"></span><span class="smoke"></span></div>
+          <div class="candle taller"><span class="wick"></span><span class="flame"></span><span class="smoke"></span></div>
+          <div class="candle tall"><span class="wick"></span><span class="flame"></span><span class="smoke"></span></div>
+          <div class="candle"><span class="wick"></span><span class="flame"></span><span class="smoke"></span></div>
+        </div>
 
-  /* ---------- confetti ---------- */
-  const cv = document.getElementById('confetti');
-  const g = cv.getContext('2d');
-  const colors = ['#800020', '#5c1a1b', '#2f5d3a', '#6b4226', '#f5ead8', '#a8324a', '#4f7a55', '#8b5e3c'];
-  let parts = [], animating = false;
-  function resize() { cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio; }
-  addEventListener('resize', resize); resize();
+        <div class="tier tier-top">
+          <div class="frost"></div>
+          <div class="pearls"></div>
+        </div>
+        <div class="ribbon"></div>
+        <div class="tier tier-bottom">
+          <div class="frost"></div>
+          <div class="pearls"></div>
+          <div class="lace"></div>
+        </div>
 
-  function burst() {
-    const n = matchMedia('(prefers-reduced-motion: reduce)').matches ? 60 : 220;
-    for (let i = 0; i < n; i++) {
-      parts.push({
-        x: innerWidth / 2 + (Math.random() - .5) * 80,
-        y: innerHeight * .45,
-        vx: (Math.random() - .5) * 14,
-        vy: -Math.random() * 14 - 4,
-        w: 6 + Math.random() * 6, h: 8 + Math.random() * 10,
-        r: Math.random() * Math.PI, vr: (Math.random() - .5) * .3,
-        c: colors[(Math.random() * colors.length) | 0],
-        heart: Math.random() < .18,
-      });
-    }
-    if (!animating) { animating = true; requestAnimationFrame(tick); }
-  }
-  function heart(x, y, s, c) {
-    g.fillStyle = c; g.beginPath();
-    g.moveTo(x, y + s * .3);
-    g.bezierCurveTo(x, y, x - s * .5, y, x - s * .5, y + s * .3);
-    g.bezierCurveTo(x - s * .5, y + s * .6, x, y + s * .8, x, y + s);
-    g.bezierCurveTo(x, y + s * .8, x + s * .5, y + s * .6, x + s * .5, y + s * .3);
-    g.bezierCurveTo(x + s * .5, y, x, y, x, y + s * .3);
-    g.fill();
-  }
-  function tick() {
-    const d = devicePixelRatio;
-    g.setTransform(1, 0, 0, 1, 0, 0);
-    g.clearRect(0, 0, cv.width, cv.height);
-    g.scale(d, d);
-    parts = parts.filter(p => p.y < innerHeight + 40);
-    for (const p of parts) {
-      p.vy += .32; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
-      if (p.heart) { heart(p.x, p.y, p.h * 1.3, p.c); continue; }
-      g.save(); g.translate(p.x, p.y); g.rotate(p.r);
-      g.fillStyle = p.c; g.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.r * 2)) + 1);
-      g.restore();
-    }
-    if (parts.length) requestAnimationFrame(tick); else animating = false;
-  }
-})();
-</script>
+        <img class="cake-flower cf-1" src="assets/img/bq/orchid-wine.webp" alt="">
+        <img class="cake-flower cf-2" src="assets/img/bq/anthurium-green.webp" alt="">
+        <img class="cake-flower cf-3" src="assets/img/bq/mum.webp" alt="">
+        <img class="cake-flower cf-4" src="assets/img/bq/orchid-spray.webp" alt="">
+
+        <div class="stand"><div class="stand-plate"></div><div class="stand-stem"></div><div class="stand-foot"></div></div>
+      </div>
+
+      <div class="match" id="match" aria-hidden="true"><span class="match-head"></span><span class="match-fire"></span></div>
+    </div>
+
+    <div class="cake-actions">
+      <button class="btn btn-wine" id="btnMatch" type="button">
+        <span class="matchbox" aria-hidden="true"></span> Ambil korek
+      </button>
+      <button class="btn btn-wine" id="btnWish" type="button" hidden>Udah, aku udah wish</button>
+      <button class="btn btn-ghost-dark" id="btnMic" type="button" hidden>Tiup lewat mic</button>
+    </div>
+
+    <div class="wish-card" id="wishCard" aria-live="polite">
+      <span class="cc cc-tl"></span><span class="cc cc-tr"></span><span class="cc cc-bl"></span><span class="cc cc-br"></span>
+      <p class="script wish-title">Happy Birthday, Sayang</p>
+      <p>Semoga semua yang kamu wish barusan dikabulkan Allah, satu per satu, di waktu yang paling tepat.</p>
+      <p>Thank you for being you. Ini ulang tahun terakhir kamu sebagai pacar aku, karena tiga hari lagi kamu jadi istri aku.</p>
+      <p class="wish-sign">Fatah</p>
+      <button class="btn btn-ghost-dark" id="btnRelight" type="button">Nyalain lagi</button>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       (coming next: the letter with the "G" wax seal goes here)
+       ===================================================== -->
+
+</main>
+
+<script src="assets/js/birthday.js"></script>
 </body>
 </html>
