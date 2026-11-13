@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Crescent moon -->
+  <path d="M64 26 C42 28, 26 46, 26 68 C26 90, 44 106, 66 106 C81 106, 94 98, 100 86 C85 90, 68 83, 60 69 C52 55, 55 38, 64 26 Z" />
+  <!-- Floating 'z's for dreaming -->
+  <path d="M74 44 L84 44 L74 54 L84 54" />
+  <path d="M88 28 L96 28 L88 36 L96 36" />
+  <path d="M98 16 L104 16 L98 22 L104 22" />
+</svg>

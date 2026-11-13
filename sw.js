@@ -1,6 +1,6 @@
 // Offline support so the page opens even without internet at midnight.
 // Bump VERSION whenever files change (e.g. after adding photos).
-const VERSION = 'v5';
+const VERSION = 'v6';
 const CACHE = 'gege-' + VERSION;
 const CORE = [
   './',
@@ -18,6 +18,43 @@ const CORE = [
   './assets/img/bq/whitemix.webp',
   './assets/photos/sd-fatah.webp',
   './assets/photos/sd-gege.webp',
+  './assets/img/art/cloud-day-1.webp',
+  './assets/img/art/cloud-day-2.webp',
+  './assets/img/art/cloud-day-3.webp',
+  './assets/img/art/cloud-rose-1.webp',
+  './assets/img/art/cloud-rose-2.webp',
+  './assets/img/art/cloud-rose-3.webp',
+  './assets/img/art/divider-1.svg',
+  './assets/img/art/divider-2.svg',
+  './assets/img/art/doodle-backpack.svg',
+  './assets/img/art/doodle-calendar.svg',
+  './assets/img/art/doodle-dream.svg',
+  './assets/img/art/doodle-heart.svg',
+  './assets/img/art/doodle-pencil.svg',
+  './assets/img/art/doodle-speech.svg',
+  './assets/img/art/doodle-tie.svg',
+  './assets/img/art/dream-haze.webp',
+  './assets/img/art/moon.webp',
+  './assets/img/art/petal-1.webp',
+  './assets/img/art/petal-2.webp',
+  './assets/img/art/petal-3.webp',
+  './assets/img/art/petal-4.webp',
+  './assets/img/art/petal-5.webp',
+  './assets/img/art/petal-6.webp',
+  './assets/img/art/petal-7.webp',
+  './assets/img/art/petal-8.webp',
+  './assets/img/art/sparkle-1.webp',
+  './assets/img/art/sparkle-2.webp',
+  './assets/img/art/sparkle-3.webp',
+  './assets/img/art/sugar-rose-1.webp',
+  './assets/img/art/sugar-rose-2.webp',
+  './assets/img/art/sugar-rose-3.webp',
+  './assets/img/art/sugar-rose-4.webp',
+  './assets/img/art/sun.webp',
+  './assets/img/art/tape-brown.webp',
+  './assets/img/art/tape-burgundy.webp',
+  './assets/img/art/tape-cream.webp',
+  './assets/img/art/tape-green.webp',
 ];
 const OPTIONAL = ['./assets/audio/night-changes.mp3']; // cached if present
 const FONTS = 'https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Cormorant+Garamond:wght@500;600&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Pinyon+Script&display=swap';

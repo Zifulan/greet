@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Shirt collar hints -->
+  <path d="M36 22 L51 32 M84 22 L69 32" />
+  <!-- Knot -->
+  <path d="M50 22 L70 22 L66 36 L54 36 Z" />
+  <!-- Tie blade -->
+  <path d="M54 36 L47 86 L60 102 L73 86 L66 36" />
+  <!-- Subtle diagonal stripes -->
+  <path d="M52 52 L67 45 M50 68 L69 59 M49 82 L71 72" />
+</svg>

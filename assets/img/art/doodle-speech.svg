@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Organic hand-drawn speech bubble -->
+  <path d="M24 54 C24 33, 42 22, 62 22 C83 22, 98 34, 98 53 C98 72, 83 84, 62 84 C55 84, 49 83, 43 81 L28 93 L32 76 C27 70, 24 62, 24 54 Z" />
+  <!-- Three soft dots -->
+  <circle cx="47" cy="53" r="2.2" fill="currentColor" />
+  <circle cx="61" cy="53" r="2.2" fill="currentColor" />
+  <circle cx="75" cy="53" r="2.2" fill="currentColor" />
+</svg>

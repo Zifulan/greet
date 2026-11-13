@@ -52,6 +52,7 @@
   const g = cv.getContext('2d');
   const petalColors = ['#800020', '#A33A4E', '#5C1A1B', '#E7A9B4', '#F5EAD8', '#3F6B4A', '#5A8C64', '#8B5E3C'];
   let petals = [], running = false;
+  const sprites = Array.from({ length: 8 }, (_, i) => { const im = new Image(); im.src = `assets/img/art/petal-${i + 1}.webp`; return im; });
 
   function resize() {
     cv.width = innerWidth * devicePixelRatio;
@@ -73,6 +74,7 @@
       sway: Math.random() * Math.PI * 2,
       flip: Math.random() * Math.PI * 2,
       color: petalColors[(Math.random() * petalColors.length) | 0],
+      sprite: sprites[(Math.random() * sprites.length) | 0],
       burst: !fromTop,
     };
   }
@@ -95,6 +97,12 @@
     g.translate(p.x, p.y);
     g.rotate(p.rot);
     g.scale(1, Math.abs(Math.cos(p.flip)) * .8 + .2);
+    if (p.sprite.complete && p.sprite.naturalWidth) {
+      const d = p.size * 2.1;
+      g.drawImage(p.sprite, -d / 2, -d / 2, d, d);
+      g.restore();
+      return;
+    }
     g.fillStyle = p.color;
     g.beginPath();
     g.moveTo(0, -p.size);
@@ -165,12 +173,12 @@
      Each .scene has data-time; colours blend as she scrolls.
      ===================================================== */
   const TIMES = {
-    night:   { top: '#12070C', bottom: '#2A0E12', fg: '#F5EAD8', soft: 'rgba(245,234,216,.72)', stars: 1,   orb: '#F2E6CF', glow: 'rgba(242,230,207,.22)', orbY: 6, orbOp: .55, accent: '#E7A9B4' },
-    morning: { top: '#EADBC2', bottom: '#F7EFE2', fg: '#3B1A1D', soft: 'rgba(59,26,29,.72)',    stars: 0,   orb: '#FFF3D6', glow: 'rgba(255,226,170,.55)', orbY: 8, orbOp: .9,  accent: '#800020' },
-    noon:    { top: '#C9D3BF', bottom: '#F1EADC', fg: '#24301F', soft: 'rgba(36,48,31,.72)',    stars: 0,   orb: '#FFF8E6', glow: 'rgba(255,240,200,.6)',  orbY: 5, orbOp: .9,  accent: '#3F6B4A' },
-    dawn:    { top: '#3B1E2E', bottom: '#B9867E', fg: '#FBEFE0', soft: 'rgba(251,239,224,.78)', stars: .45, orb: '#F2E6CF', glow: 'rgba(242,230,207,.2)', orbY: 12, orbOp: .5, accent: '#F3C7C0' },
-    sunrise: { top: '#C77B6A', bottom: '#F4D7B5', fg: '#3B1A1D', soft: 'rgba(59,26,29,.75)', stars: 0, orb: '#FFE2B0', glow: 'rgba(255,200,140,.6)', orbY: 82, orbOp: .95, accent: '#800020' },
-    sunset:  { top: '#5C1A1B', bottom: '#C0704E', fg: '#FBEFE0', soft: 'rgba(251,239,224,.78)', stars: .25, orb: '#F6B47C', glow: 'rgba(246,160,100,.5)',  orbY: 90, orbOp: .9, accent: '#F6C9A8' },
+    night:   { top: '#12070C', bottom: '#2A0E12', fg: '#F5EAD8', soft: 'rgba(245,234,216,.72)', stars: 1,   orb: '#F2E6CF', glow: 'rgba(242,230,207,.22)', orbY: 6, orbOp: .55, accent: '#E7A9B4', moon: 1, sun: 0, day: 0, rose: 0 },
+    morning: { top: '#EADBC2', bottom: '#F7EFE2', fg: '#3B1A1D', soft: 'rgba(59,26,29,.72)',    stars: 0,   orb: '#FFF3D6', glow: 'rgba(255,226,170,.55)', orbY: 8, orbOp: .9,  accent: '#800020', moon: 0, sun: .9, day: .85, rose: 0 },
+    noon:    { top: '#C9D3BF', bottom: '#F1EADC', fg: '#24301F', soft: 'rgba(36,48,31,.72)',    stars: 0,   orb: '#FFF8E6', glow: 'rgba(255,240,200,.6)',  orbY: 5, orbOp: .9,  accent: '#3F6B4A', moon: 0, sun: 1, day: .95, rose: 0 },
+    dawn:    { top: '#3B1E2E', bottom: '#B9867E', fg: '#FBEFE0', soft: 'rgba(251,239,224,.78)', stars: .45, orb: '#F2E6CF', glow: 'rgba(242,230,207,.2)', orbY: 12, orbOp: .5, accent: '#F3C7C0', moon: .7, sun: 0, day: 0, rose: .55 },
+    sunrise: { top: '#C77B6A', bottom: '#F4D7B5', fg: '#3B1A1D', soft: 'rgba(59,26,29,.75)', stars: 0, orb: '#FFE2B0', glow: 'rgba(255,200,140,.6)', orbY: 82, orbOp: .95, accent: '#800020', moon: 0, sun: 1, day: 0, rose: .85 },
+    sunset:  { top: '#5C1A1B', bottom: '#C0704E', fg: '#FBEFE0', soft: 'rgba(251,239,224,.78)', stars: .25, orb: '#F6B47C', glow: 'rgba(246,160,100,.5)',  orbY: 90, orbOp: .9, accent: '#F6C9A8', moon: 0, sun: .9, day: 0, rose: .9 },
   };
   const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
   const rgba = c => c.startsWith('#') ? [...hex(c), 1] : c.match(/[\d.]+/g).map(Number);
@@ -203,7 +211,10 @@
     rootStyle.setProperty('--orb-color', mix(a.orb, b.orb, t));
     rootStyle.setProperty('--orb-glow', mix(a.glow, b.glow, t));
     rootStyle.setProperty('--orb-y', lerp(a.orbY, b.orbY, t).toFixed(1) + '%');
-    rootStyle.setProperty('--orb-op', lerp(a.orbOp, b.orbOp, t).toFixed(3));
+    rootStyle.setProperty('--moon', lerp(a.moon, b.moon, t).toFixed(3));
+    rootStyle.setProperty('--sun', lerp(a.sun, b.sun, t).toFixed(3));
+    rootStyle.setProperty('--clouds-day', lerp(a.day, b.day, t).toFixed(3));
+    rootStyle.setProperty('--clouds-rose', lerp(a.rose, b.rose, t).toFixed(3));
     if (themeMeta) themeMeta.content = mix(a.top, b.top, t);
   }
   let skyQueued = false;
@@ -226,6 +237,25 @@
     st.style.animationDuration = (2 + Math.random() * 3).toFixed(2) + 's';
     starBox.appendChild(st);
   }
+  for (let k = 0; k < 7; k++) {
+    const sp = document.createElement('img');
+    sp.className = 'spark'; sp.alt = '';
+    sp.src = `assets/img/art/sparkle-${(k % 3) + 1}.webp`;
+    sp.style.left = (5 + Math.random() * 90) + '%';
+    sp.style.top = (4 + Math.random() * 70) + '%';
+    sp.style.animationDelay = (-Math.random() * 3).toFixed(2) + 's';
+    starBox.appendChild(sp);
+  }
+
+  // washi tape on every polaroid
+  const tapes = ['burgundy', 'green', 'brown', 'cream'];
+  $$('.polaroid .face.front').forEach((f, n) => {
+    const tp = document.createElement('span');
+    tp.className = 'tape';
+    tp.style.setProperty('--tape', `url(../img/art/tape-${tapes[n % tapes.length]}.webp)`);
+    tp.style.setProperty('--tr', ((n % 2 ? 1 : -1) * (2 + (n * 7) % 6)) + 'deg');
+    f.appendChild(tp);
+  });
 
   /* =====================================================
      MUSIC: Night Changes starts on her first tap

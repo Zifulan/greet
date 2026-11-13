@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M60 94 C60 94, 22 69, 22 43 C22 29, 33 21, 45 21 C52 21, 58 25, 60 31 C62 25, 68 21, 75 21 C87 21, 98 29, 98 43 C98 69, 60 94, 60 94 Z" />
+  <!-- Tiny hand-drawn inner highlight stroke -->
+  <path d="M33 37 C35 31, 40 29, 45 29" />
+</svg>

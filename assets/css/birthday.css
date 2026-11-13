@@ -61,13 +61,24 @@ button { font: inherit; }
 }
 .stars i.big { width: 3px; height: 3px; }
 @keyframes twinkle { from { opacity: .25; } to { opacity: 1; } }
-.orb { /* sun by day, moon by night */
-  position: absolute; left: var(--orb-x, 88%); top: var(--orb-y, 6%);
-  width: 44px; height: 44px; border-radius: 50%; translate: -50% -50%;
-  background: var(--orb-color, #F7EBD3);
-  box-shadow: 0 0 60px 18px var(--orb-glow, rgba(247,235,211,.25));
-  opacity: var(--orb-op, .9);
+.orb { /* moon by night, sun by day (crossfade) */
+  position: absolute; left: 86%; top: var(--orb-y, 6%);
+  width: 72px; height: 72px; translate: -50% -50%; pointer-events: none;
 }
+.orb.moon { opacity: var(--moon, 1); }
+.orb.sun { width: 96px; height: 96px; opacity: var(--sun, 0); }
+
+.clouds { position: absolute; inset: 0; pointer-events: none; }
+.clouds.day { opacity: var(--clouds-day, 0); }
+.clouds.rose { opacity: var(--clouds-rose, 0); }
+.clouds img { position: absolute; width: min(150vw, 1000px); max-width: none; opacity: .55; animation: drift 70s ease-in-out infinite alternate; }
+.clouds { mix-blend-mode: screen; }
+.clouds.rose img { opacity: .8; }
+.clouds .c1 { top: -3%; left: -40%; }
+.clouds .c2 { top: 4%; left: 35%; width: min(110vw, 700px); animation-duration: 90s; animation-direction: alternate-reverse; }
+.clouds .c3 { top: 84%; left: -45%; animation-duration: 110s; }
+@keyframes drift { from { translate: -6% 0; } to { translate: 10% 0; } }
+.spark { position: absolute; width: 22px; height: 22px; animation: twinkle 2.6s ease-in-out infinite alternate; }
 
 #petals { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 80; }
 
@@ -175,6 +186,36 @@ button { font: inherit; }
 .pile { display: grid; grid-template-columns: repeat(2, auto); justify-content: center; gap: 1rem 4vw; margin-top: 1.6rem; }
 .pile .polaroid:nth-child(even) { margin-top: 1.6rem; }
 
+/* ---------- doodles & dividers (designer line art, tinted to the sky) ---------- */
+.doodles { display: flex; justify-content: center; gap: 1.1rem; margin-bottom: 1rem; }
+.doodle, .divider {
+  display: block; background: var(--fg-soft);
+  -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat;
+}
+.doodle { width: 46px; height: 46px; }
+.doodle.beat { animation: beat 1.6s ease-in-out infinite; }
+@keyframes beat { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.15); } 30% { transform: scale(1); } 45% { transform: scale(1.1); } }
+.divider { width: 200px; height: 18px; margin: .4rem auto 1.4rem; }
+.divider.d1 { --src: url(../img/art/divider-1.svg); margin: 1.6rem auto 0; }
+.divider.d2 { --src: url(../img/art/divider-2.svg); }
+
+.dream { isolation: isolate; }
+.dream .haze {
+  position: absolute; left: -15%; top: 22%; z-index: -1; width: 130%; max-width: none;
+  opacity: 1; pointer-events: none; mix-blend-mode: screen; animation: haze 16s ease-in-out infinite alternate;
+}
+@keyframes haze { from { translate: -6% 0; rotate: -3deg; } to { translate: 6% -4%; rotate: 2deg; } }
+
+/* washi tape on polaroids */
+.face.front { position: relative; }
+.tape {
+  position: absolute; top: -12px; left: 50%; z-index: 2; width: 92px; height: 25px;
+  translate: -50% 0; rotate: var(--tr, -4deg);
+  background: var(--tape) center / 100% 100% no-repeat;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.15));
+}
+.strip .tape { width: 70px; height: 19px; top: -9px; }
+
 /* ---------- chapter two: year counter ---------- */
 .year-counter {
   margin: .5rem 0 0; font-family: var(--display); font-weight: 300; font-variation-settings: "opsz" 144;
@@ -280,18 +321,11 @@ button { font: inherit; }
 
 /* sugar roses + leaves */
 .rosettes { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
-.rose {
-  position: absolute; width: 30px; height: 30px; border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 50%, #5C1A1B 0 3px, transparent 3.5px),
-    repeating-radial-gradient(circle at 50% 50%, #A33A4E 0 3px, #7A1830 3px 5px);
-  box-shadow: 0 3px 5px rgba(0,0,0,.3), inset 0 -3px 4px rgba(0,0,0,.25);
-}
-.rose.small { width: 22px; height: 22px; }
-.leaf { position: absolute; width: 22px; height: 11px; border-radius: 0 100% 0 100%; background: linear-gradient(135deg, #5A8C64, var(--green-deep)); box-shadow: 0 2px 3px rgba(0,0,0,.25); }
-.r1 { left: 14%; top: 172px; }  .l1 { left: 8%;  top: 190px; rotate: -25deg; }
-.r2 { left: 47%; top: 178px; }  .l2 { left: 54%; top: 174px; rotate: 20deg; }
-.r3 { right: 12%; top: 170px; } .l3 { right: 6%; top: 192px; rotate: 160deg; }
+.rose { position: absolute; width: 58px; height: 58px; filter: drop-shadow(0 4px 4px rgba(0,0,0,.3)); }
+.r1 { left: 2%;  top: 154px; rotate: -12deg; }
+.r2 { left: 41%; top: 166px; width: 46px; height: 46px; rotate: 20deg; }
+.r3 { right: 2%; top: 152px; rotate: 8deg; }
+.r4 { left: 66%; top: 136px; width: 36px; height: 36px; rotate: -20deg; }
 
 .stand { position: relative; margin-top: -4px; }
 .stand-plate { width: 116%; height: 14px; margin-left: -8%; border-radius: 50%; background: linear-gradient(180deg, #E9D9C0, var(--brown-soft)); box-shadow: 0 6px 10px rgba(0,0,0,.3); }

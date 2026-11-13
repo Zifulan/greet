@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <g transform="rotate(-38 60 60)">
+    <!-- Eraser -->
+    <path d="M51 20 C51 15, 69 15, 69 20 L69 28 L51 28 Z" />
+    <!-- Ferrule -->
+    <rect x="51" y="28" width="18" height="8" />
+    <line x1="51" y1="32" x2="69" y2="32" />
+    <!-- Body -->
+    <path d="M51 36 L51 84 L60 104 L69 84 L69 36" />
+    <!-- Wood collar & graphite tip -->
+    <path d="M51 84 Q55.5 87 60 84 Q64.5 87 69 84" />
+    <path d="M57 97 L63 97" />
+    <!-- Barrel ridges -->
+    <line x1="57" y1="36" x2="57" y2="84" />
+    <line x1="63" y1="36" x2="63" y2="84" />
+  </g>
+</svg>

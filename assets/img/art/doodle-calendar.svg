@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Page body with curled bottom-right corner -->
+  <path d="M26 30 L94 30 L94 78 L78 94 L26 94 Z" />
+  <path d="M78 94 L78 78 L94 78" />
+  <!-- Header bar -->
+  <line x1="26" y1="46" x2="94" y2="46" />
+  <!-- Spiral rings -->
+  <path d="M40 22 L40 35 M60 22 L60 35 M80 22 L80 35" />
+  <!-- Small heart on the marked day -->
+  <path d="M60 77 C60 77, 48 69, 48 61 C48 56.5, 51.5 54, 55.5 54 C58 54, 59.5 55.5, 60 57.5 C60.5 55.5, 62 54, 64.5 54 C68.5 54, 72 56.5, 72 61 C72 69, 60 77, 60 77 Z" />
+</svg>

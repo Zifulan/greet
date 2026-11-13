@@ -19,7 +19,14 @@
 <!-- Sky behind everything: shifts from night → morning → afternoon → sunset → night as she scrolls -->
 <div class="sky" id="sky" aria-hidden="true">
   <div class="stars" id="stars"></div>
-  <div class="orb" id="orb"></div>
+  <div class="clouds day">
+    <img class="c1" src="assets/img/art/cloud-day-1.webp" alt=""><img class="c2" src="assets/img/art/cloud-day-2.webp" alt=""><img class="c3" src="assets/img/art/cloud-day-3.webp" alt="">
+  </div>
+  <div class="clouds rose">
+    <img class="c1" src="assets/img/art/cloud-rose-1.webp" alt=""><img class="c2" src="assets/img/art/cloud-rose-2.webp" alt=""><img class="c3" src="assets/img/art/cloud-rose-3.webp" alt="">
+  </div>
+  <img class="orb moon" src="assets/img/art/moon.webp" alt="">
+  <img class="orb sun" src="assets/img/art/sun.webp" alt="">
 </div>
 <canvas id="petals" aria-hidden="true"></canvas>
 
@@ -59,6 +66,7 @@
     <p class="kicker reveal">00:00 &middot; 9 December 2026</p>
     <h1 class="display reveal">Happy Birthday,<br><em>Gege</em></h1>
     <p class="lead reveal">Twenty six years of you.</p>
+    <span class="divider d2 reveal" aria-hidden="true"></span>
     <button class="btn btn-light reveal" id="startBtn" type="button">
       <span class="play" aria-hidden="true"></span> Play our song
     </button>
@@ -68,6 +76,7 @@
 
   <!-- ============ CHAPTER 1: SD (morning) ============ -->
   <section class="scene chapter" id="story" data-time="morning">
+    <div class="doodles reveal"><span class="doodle" style="--src:url(../img/art/doodle-backpack.svg)" aria-hidden="true"></span><span class="doodle" style="--src:url(../img/art/doodle-pencil.svg)" aria-hidden="true"></span><span class="doodle" style="--src:url(../img/art/doodle-tie.svg)" aria-hidden="true"></span></div>
     <p class="kicker reveal">Chapter one</p>
     <h2 class="display reveal">Where it all started</h2>
 
@@ -91,6 +100,7 @@
 
   <!-- ============ CHAPTER 2: twelve years apart (afternoon) ============ -->
   <section class="scene chapter years" id="years" data-time="noon">
+    <div class="doodles reveal"><span class="doodle" style="--src:url(../img/art/doodle-calendar.svg)" aria-hidden="true"></span></div>
     <p class="kicker reveal">Chapter two</p>
     <h2 class="display reveal">Then nothing, for twelve years</h2>
     <p class="year-counter reveal" id="yearCounter" aria-label="2013 to 2025">2013</p>
@@ -101,6 +111,8 @@
 
   <!-- ============ CHAPTER 3: the dream (night) ============ -->
   <section class="scene chapter dream" data-time="night">
+    <img class="haze" src="assets/img/art/dream-haze.webp" alt="" aria-hidden="true">
+    <div class="doodles reveal"><span class="doodle" style="--src:url(../img/art/doodle-dream.svg)" aria-hidden="true"></span></div>
     <p class="kicker reveal">Late October 2025</p>
     <h2 class="display reveal">Then one night,<br><em>you dreamed about me</em></h2>
     <p class="body reveal">Out of nowhere. After twelve years.<br>Of all the people in the world, me.</p>
@@ -108,6 +120,7 @@
 
   <!-- ============ CHAPTER 4: you found me (dawn) ============ -->
   <section class="scene chapter found" data-time="dawn">
+    <div class="doodles reveal"><span class="doodle" style="--src:url(../img/art/doodle-speech.svg)" aria-hidden="true"></span></div>
     <p class="kicker reveal">Chapter three</p>
     <h2 class="display reveal">And you came looking</h2>
 
@@ -138,6 +151,7 @@
 
   <!-- ============ CHAPTER 5: the confession (sunrise) ============ -->
   <section class="scene chapter confess" data-time="sunrise">
+    <div class="doodles reveal"><span class="doodle beat" style="--src:url(../img/art/doodle-heart.svg)" aria-hidden="true"></span></div>
     <p class="kicker reveal">24 December 2025</p>
     <h2 class="display reveal">Out of nowhere,<br><em>you said you liked me</em></h2>
     <p class="body big reveal">And I said I did too.</p>
@@ -176,6 +190,7 @@
     <p class="kicker reveal">Tonight</p>
     <h2 class="display reveal">Twelve years apart.<br><em>One dream.</em></h2>
     <p class="body big reveal">And less than a year after you said it,<br>you become my wife.</p>
+    <span class="divider d1 reveal" aria-hidden="true"></span>
     <p class="body reveal">Three more days, Gege.</p>
   </section>
 
@@ -194,9 +209,10 @@
         <div class="ribbon"></div>
         <div class="tier tier-bottom"><div class="frost"></div><div class="pearls"></div></div>
         <div class="rosettes" aria-hidden="true">
-          <span class="rose r1"></span><span class="leaf l1"></span>
-          <span class="rose r2 small"></span><span class="leaf l2"></span>
-          <span class="rose r3"></span><span class="leaf l3"></span>
+          <img class="rose r1" src="assets/img/art/sugar-rose-1.webp" alt="">
+          <img class="rose r2" src="assets/img/art/sugar-rose-3.webp" alt="">
+          <img class="rose r3" src="assets/img/art/sugar-rose-4.webp" alt="">
+          <img class="rose r4" src="assets/img/art/sugar-rose-2.webp" alt="">
         </div>
         <div class="stand"><div class="stand-plate"></div><div class="stand-stem"></div><div class="stand-foot"></div></div>
       </div>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Top handle -->
+  <path d="M48 26 C48 16, 72 16, 72 26" />
+  <!-- Main bag body -->
+  <path d="M32 46 C32 30, 88 30, 88 46 L92 92 C92 99, 86 103, 78 103 L42 103 C34 103, 28 99, 28 92 Z" />
+  <!-- Top flap -->
+  <path d="M31 52 C45 62, 75 62, 89 52" />
+  <!-- Flap straps & buckles -->
+  <path d="M45 55 L45 70 M75 55 L75 70" />
+  <rect x="41" y="64" width="8" height="6" rx="1.5" />
+  <rect x="71" y="64" width="8" height="6" rx="1.5" />
+  <!-- Front pocket -->
+  <path d="M40 76 L80 76 C82 76, 83 78, 83 80 L83 94 C83 96, 81 97, 79 97 L41 97 C39 97, 37 96, 37 94 L37 80 C37 78, 38 76, 40 76 Z" />
+  <!-- Side strap hint -->
+  <path d="M29 66 C21 72, 21 88, 28 94 M91 66 C99 72, 99 88, 92 94" />
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 36" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+  <line x1="20" y1="18" x2="168" y2="18" />
+  <line x1="232" y1="18" x2="380" y2="18" />
+  <!-- Delicate scroll loop flourish -->
+  <path d="M168 18 C180 18, 184 9, 192 9 C198 9, 200 14, 200 18 C200 22, 198 27, 192 27 C187 27, 185 22, 189 19" />
+  <path d="M232 18 C220 18, 216 9, 208 9 C202 9, 200 14, 200 18 C200 22, 202 27, 208 27 C213 27, 215 22, 211 19" />
+</svg>
