@@ -1,6 +1,6 @@
 // Offline support so the page opens even without internet at midnight.
 // Bump VERSION whenever files change (e.g. after adding photos).
-const VERSION = 'v7';
+const VERSION = 'v8';
 const CACHE = 'gege-' + VERSION;
 const CORE = [
   './',
@@ -18,6 +18,10 @@ const CORE = [
   './assets/img/bq/whitemix.webp',
   './assets/photos/sd-fatah.webp',
   './assets/photos/sd-gege.webp',
+  './assets/img/art/cake.webp',
+  './assets/img/art/candle-2.webp',
+  './assets/img/art/candle-6.webp',
+  './assets/img/art/match.webp',
   './assets/img/art/cloud-day-1.webp',
   './assets/img/art/cloud-day-2.webp',
   './assets/img/art/cloud-day-3.webp',
@@ -46,10 +50,6 @@ const CORE = [
   './assets/img/art/sparkle-1.webp',
   './assets/img/art/sparkle-2.webp',
   './assets/img/art/sparkle-3.webp',
-  './assets/img/art/sugar-rose-1.webp',
-  './assets/img/art/sugar-rose-2.webp',
-  './assets/img/art/sugar-rose-3.webp',
-  './assets/img/art/sugar-rose-4.webp',
   './assets/img/art/sun.webp',
   './assets/img/art/tape-brown.webp',
   './assets/img/art/tape-burgundy.webp',
