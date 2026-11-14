@@ -227,7 +227,76 @@ button { font: inherit; }
 .year-track span { display: block; height: 100%; width: 0; background: var(--fg); }
 .years .body + .body { margin-top: 1rem; }
 
-/* ---------- chapter three: notifications ---------- */
+/* ---------- engagement rings ---------- */
+.rings { position: relative; display: block; width: 74px; height: 46px; margin: 0 auto 1.2rem; }
+.rings::before, .rings::after {
+  content: ""; position: absolute; top: 4px; width: 38px; height: 38px; border-radius: 50%;
+  border: 3px solid var(--accent); box-shadow: 0 0 14px rgba(246,201,168,.35);
+}
+.rings::before { left: 6px; }
+.rings::after { right: 6px; }
+
+/* ---------- 15 Jan: the real chat ---------- */
+.chatlog { display: flex; flex-direction: column; gap: .45rem; width: min(330px, 94%); margin: 2.2rem auto 0; text-align: left; }
+.chat-date {
+  align-self: center; margin: 0 0 .4rem !important; padding: .2rem .75rem; border-radius: 999px;
+  font-size: .72rem; letter-spacing: .06em; background: rgba(43,20,22,.08); color: var(--fg-soft);
+}
+.bubble {
+  position: relative; max-width: 82%; padding: .55rem .8rem 1.15rem; border-radius: 16px;
+  font-size: 1rem; line-height: 1.4; box-shadow: 0 6px 16px rgba(43,20,22,.14);
+}
+.bubble .time { position: absolute; right: .7rem; bottom: .3rem; font-size: .66rem; opacity: .6; }
+.bubble.me { align-self: flex-end; border-bottom-right-radius: 4px; background: var(--burgundy); color: var(--cream); }
+.bubble.her { align-self: flex-start; border-bottom-left-radius: 4px; background: var(--cream-2); color: var(--ink); min-width: 92px; font-family: var(--hand); font-size: 1.45rem; padding-top: .35rem; }
+
+/* ---------- chapter four: ticket stub + note ---------- */
+.ticket {
+  display: flex; width: min(330px, 92%); margin: 1.4rem auto 0; text-align: left;
+  filter: drop-shadow(0 12px 22px rgba(43,20,22,.25)); rotate: -2deg;
+}
+.ticket.reveal.in { transform: none; }
+.ticket-main, .ticket-stub { background-color: var(--cream-2); background-image: var(--grain); }
+.ticket-main {
+  flex: 1; padding: 1rem 1.1rem; border-radius: 10px 0 0 10px;
+  border: 1.5px solid rgba(128,0,32,.25); border-right: 0;
+  /* notches where the stub tears off */
+  -webkit-mask: radial-gradient(circle at 100% 0, transparent 9px, #000 9.5px) top / 100% 51% no-repeat,
+                radial-gradient(circle at 100% 100%, transparent 9px, #000 9.5px) bottom / 100% 51% no-repeat;
+          mask: radial-gradient(circle at 100% 0, transparent 9px, #000 9.5px) top / 100% 51% no-repeat,
+                radial-gradient(circle at 100% 100%, transparent 9px, #000 9.5px) bottom / 100% 51% no-repeat;
+}
+.ticket p { margin: 0; }
+.ticket-admit { font-size: .66rem; font-weight: 700; letter-spacing: .3em; text-transform: uppercase; color: var(--green); }
+.ticket-title { margin: .15rem 0 .2rem !important; font-size: 1.55rem; font-style: italic; line-height: 1.1; color: var(--burgundy); }
+.ticket-meta { font-size: .85rem; color: rgba(43,20,22,.7); }
+.ticket-stub {
+  width: 64px; display: grid; place-items: center; border-radius: 0 10px 10px 0;
+  border: 1.5px dashed rgba(128,0,32,.35); border-left: 2px dashed rgba(128,0,32,.35);
+  -webkit-mask: radial-gradient(circle at 0 0, transparent 9px, #000 9.5px) top / 100% 51% no-repeat,
+                radial-gradient(circle at 0 100%, transparent 9px, #000 9.5px) bottom / 100% 51% no-repeat;
+          mask: radial-gradient(circle at 0 0, transparent 9px, #000 9.5px) top / 100% 51% no-repeat,
+                radial-gradient(circle at 0 100%, transparent 9px, #000 9.5px) bottom / 100% 51% no-repeat;
+}
+.ticket-stub span { writing-mode: vertical-rl; font-size: .7rem; font-weight: 600; letter-spacing: .25em; color: var(--burgundy); }
+
+.note {
+  position: relative; width: min(270px, 84%); margin: 2.4rem auto 0; padding: 1.5rem 1.2rem 1.1rem;
+  background-color: #FFFBF2; background-image: var(--grain), repeating-linear-gradient(transparent 0 27px, rgba(63,107,74,.18) 27px 28px);
+  box-shadow: 0 12px 26px rgba(43,20,22,.22); rotate: 2.5deg; color: var(--ink);
+}
+.note.reveal.in { transform: none; }
+.note p { margin: 0; }
+.note-tape {
+  position: absolute; top: -12px; left: 50%; width: 96px; height: 26px; translate: -50% 0; rotate: -3deg;
+  background: url(../img/art/tape-burgundy.webp) center / 100% 100% no-repeat;
+}
+.note-date { font-size: .74rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(43,20,22,.55); }
+.note-q { margin-top: .4rem !important; font-family: var(--hand); font-size: 1.75rem; line-height: 1.15; color: var(--maroon); }
+.note-a { margin-top: .3rem !important; font-family: var(--hand); font-size: 2.1rem; line-height: 1; color: var(--burgundy); rotate: -4deg; }
+.firsts .body { margin-top: 1.4rem; }
+
+
 .notifs { display: flex; flex-direction: column; gap: .8rem; width: min(360px, 100%); margin-top: 1.4rem; }
 .notif {
   display: flex; align-items: center; gap: .8rem; padding: .8rem .95rem; text-align: left;
