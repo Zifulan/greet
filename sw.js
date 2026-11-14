@@ -1,6 +1,6 @@
 // Offline support so the page opens even without internet at midnight.
 // Bump VERSION whenever files change (e.g. after adding photos).
-const VERSION = 'v12';
+const VERSION = 'v13';
 const CACHE = 'gege-' + VERSION;
 const CORE = [
   './',
@@ -56,7 +56,13 @@ const CORE = [
   './assets/img/art/tape-cream.webp',
   './assets/img/art/tape-green.webp',
 ];
-const OPTIONAL = ['./assets/audio/night-changes.mp3']; // cached if present
+const OPTIONAL = [ // cached if present (uploaded via cPanel, not in git)
+  './assets/audio/night-changes.mp3',
+  './assets/photos/us-mirror.webp',
+  './assets/photos/us-cat.webp',
+  './assets/photos/us-photobooth.webp',
+  './assets/photos/us-engagement.webp',
+];
 const FONTS = 'https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Cormorant+Garamond:wght@500;600&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Pinyon+Script&display=swap';
 
 self.addEventListener('install', e => {

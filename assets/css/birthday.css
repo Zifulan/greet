@@ -487,3 +487,11 @@ button { font: inherit; }
 .engaged-line .kicker { margin-bottom: .3rem; }
 .engaged-line .body.big { margin-top: 0; }
 .cake-section .lastyear { margin: 0 auto 1.6rem; font-style: italic; }
+
+/* photobooth strip in the "us" pile */
+.booth { position: relative; margin: 0; width: min(32vw, 150px); rotate: var(--r, 0deg); justify-self: center; }
+.booth.reveal { transform: translateY(30px) scale(.96); }
+.booth.reveal.in { transform: none; }
+.booth img { width: 100%; height: auto; border-radius: 3px; box-shadow: 0 14px 30px rgba(20,6,8,.35), 0 2px 4px rgba(20,6,8,.2); }
+.booth .tape { top: -10px; width: 74px; height: 20px; }
+.pile { align-items: start; }
