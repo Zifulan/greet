@@ -472,3 +472,18 @@ button { font: inherit; }
   .scroll-cue, .stars i, .bars i { animation: none; }
   .candle.lit .flame { animation: none; }
 }
+
+/* ---------- trimmed story tweaks ---------- */
+.dream .hand { margin-top: 1.6rem; }
+.notifs.small { margin-top: .8rem; gap: .6rem; width: min(330px, 100%); }
+.notifs.small .notif { padding: .6rem .8rem; border-radius: 15px; }
+.notifs.small .notif-icon { width: 34px; height: 34px; font-size: .95rem; }
+.notifs.small .notif p { font-size: .9rem; }
+.bubble.no-time { padding-bottom: .6rem; }
+.bubble.her.no-time { font-family: var(--display); font-size: 1rem; padding-top: .55rem; }
+.confess .chatlog { margin-top: 1.2rem; }
+.confess .hand { margin-top: 1.4rem; font-size: 1.45rem; }
+.engaged-line { margin-top: 2.6rem; }
+.engaged-line .kicker { margin-bottom: .3rem; }
+.engaged-line .body.big { margin-top: 0; }
+.cake-section .lastyear { margin: 0 auto 1.6rem; font-style: italic; }
