@@ -247,6 +247,7 @@ button { font: inherit; }
 .notif-icon.chat::before { content: ""; width: 18px; height: 14px; background: #fff; border-radius: 7px 7px 7px 2px; }
 
 .confess .hand { margin-top: 1.4rem; font-size: 1.6rem; }
+.confess .day-tag { margin: -.4rem 0 .3rem; font-size: 1.5rem; color: var(--accent); }
 
 
 .cake-section { justify-content: flex-start; padding-top: calc(5rem + env(safe-area-inset-top)); }
@@ -318,6 +319,7 @@ button { font: inherit; }
 }
 .wish-card.show { opacity: 1; transform: none; pointer-events: auto; }
 .wish-title { margin: 0 0 1rem; font-size: clamp(1.8rem, 8vw, 2.2rem); font-style: italic; line-height: 1.1; color: var(--burgundy); }
+.wish-last { margin: 1.4rem 0 0; font-style: italic; color: var(--burgundy); }
 .wish-sign { margin: 1.4rem 0; font-family: var(--hand); font-size: 2rem; color: var(--green); }
 
 /* test-mode badge (only with ?preview) */
