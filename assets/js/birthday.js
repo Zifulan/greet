@@ -170,107 +170,68 @@
   }
 
   /* =====================================================
-     SKY: night → morning → afternoon → … → night
-     Each time of day is its own pre-painted layer; scrolling only changes
-     opacity (GPU-composited), so nothing on the page has to repaint.
+     SKY: every section paints its own sky, so text always sits on
+     the right background. Neighbouring sections meet in a soft
+     gradient. Built once; nothing changes while scrolling.
      ===================================================== */
   const TIMES = {
-    night:   { top: '#12070C', bottom: '#2A0E12', stars: 1,   moon: 1,  sun: 0,  day: 0,   rose: 0,   orbY: 6 },
-    morning: { top: '#EADBC2', bottom: '#F7EFE2', stars: 0,   moon: 0,  sun: .9, day: .85, rose: 0,   orbY: 8 },
-    noon:    { top: '#C9D3BF', bottom: '#F1EADC', stars: 0,   moon: 0,  sun: 1,  day: .95, rose: 0,   orbY: 5 },
-    dawn:    { top: '#3B1E2E', bottom: '#B9867E', stars: .45, moon: .7, sun: 0,  day: 0,   rose: .55, orbY: 12 },
-    sunrise: { top: '#C77B6A', bottom: '#F4D7B5', stars: 0,   moon: 0,  sun: 1,  day: 0,   rose: .85, orbY: 82 },
-    sunset:  { top: '#5C1A1B', bottom: '#C0704E', stars: .25, moon: 0,  sun: .9, day: 0,   rose: .9,  orbY: 90 },
+    night:   { top: '#12070C', bottom: '#2A0E12', stars: 1,   moon: 1,   sun: 0, clouds: '' },
+    morning: { top: '#EADBC2', bottom: '#F7EFE2', stars: 0,   moon: 0,   sun: 1, clouds: 'day' },
+    noon:    { top: '#C9D3BF', bottom: '#F1EADC', stars: 0,   moon: 0,   sun: 1, clouds: 'day' },
+    dawn:    { top: '#3B1E2E', bottom: '#B9867E', stars: .5,  moon: .8,  sun: 0, clouds: 'rose' },
+    sunrise: { top: '#C77B6A', bottom: '#F4D7B5', stars: 0,   moon: 0,   sun: 1, clouds: 'rose' },
+    sunset:  { top: '#5C1A1B', bottom: '#C0704E', stars: .3,  moon: 0,   sun: 1, clouds: 'rose' },
   };
-  const lerp = (a, b, t) => a + (b - a) * t;
-  const sky = $('#sky');
-  const layers = {};
-  Object.keys(TIMES).reverse().forEach(k => {
-    const d = document.createElement('div');
-    d.className = 'sky-layer';
-    d.style.background = `linear-gradient(180deg, ${TIMES[k].top}, ${TIMES[k].bottom})`;
-    d.style.opacity = '0';
-    sky.prepend(d);
-    layers[k] = d;
-  });
-  const starLayer = $('#stars'), dayClouds = $('.clouds.day'), roseClouds = $('.clouds.rose');
-  const moon = $('.orb.moon'), sun = $('.orb.sun');
+  const hex = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
+  const mix = (x, y, t = .5) => {
+    const a = hex(x), b = hex(y);
+    return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, '0')).join('');
+  };
   const scenes = $$('.scene[data-time]');
-  const themeMeta = document.querySelector('meta[name="theme-color"]');
-  let centers = [];
-  const measure = () => { centers = scenes.map(sc => sc.offsetTop + sc.offsetHeight / 2); };
+  const ART = 'assets/img/art/';
+  const img = (cls, src) => { const im = document.createElement('img'); im.className = cls; im.src = src; im.alt = ''; im.decoding = 'async'; return im; };
 
-  const last = new Map();
-  const setOp = (el, v) => {
-    const r = Math.round(v * 1000) / 1000;
-    if (last.get(el) !== r) { el.style.opacity = r; last.set(el, r); }
-  };
-  let lastPair = '';
+  scenes.forEach((sc, i) => {
+    const T = TIMES[sc.dataset.time];
+    const P = scenes[i - 1] && TIMES[scenes[i - 1].dataset.time];
+    const N = scenes[i + 1] && TIMES[scenes[i + 1].dataset.time];
+    const from = P ? mix(P.bottom, T.top) : T.top;   // same colour the previous section ends on
+    const to = N ? mix(T.bottom, N.top) : T.bottom;  // same colour the next section starts on
+    sc.style.background = `linear-gradient(180deg, ${from} 0, ${T.top} min(24vh, 28%), ${T.bottom} max(calc(100% - 24vh), 72%), ${to} 100%)`;
 
-  function paintSky() {
-    if (!centers.length) measure();
-    const mid = scrollY + innerHeight / 2;
-    let i = 0;
-    while (i < centers.length - 1 && mid > centers[i + 1]) i++;
-    const ka = scenes[i].dataset.time;
-    const kb = scenes[Math.min(i + 1, scenes.length - 1)].dataset.time;
-    const a = TIMES[ka], b = TIMES[kb];
-    let t = i < centers.length - 1 ? (mid - centers[i]) / (centers[i + 1] - centers[i]) : 0;
-    t = Math.max(0, Math.min(1, t));
-    t = t * t * (3 - 2 * t); // smoothstep
-
-    const pair = ka + '>' + kb;
-    if (pair !== lastPair) { // only restack when the pair of skies changes
-      for (const [k, el] of Object.entries(layers)) {
-        el.style.zIndex = k === kb ? 1 : 0;
-        if (k !== ka && k !== kb) setOp(el, 0);
+    const deco = document.createElement('div');
+    deco.className = 'deco';
+    deco.setAttribute('aria-hidden', 'true');
+    if (T.stars) {
+      const sf = document.createElement('div');
+      sf.className = 'starfield';
+      sf.style.opacity = T.stars;
+      deco.append(sf);
+      for (let k = 0; k < 3; k++) {
+        const sp = img('spark', `${ART}sparkle-${(k % 3) + 1}.webp`);
+        sp.style.left = (8 + Math.random() * 84) + '%';
+        sp.style.top = (6 + Math.random() * 60) + '%';
+        sp.style.animationDelay = (-Math.random() * 3).toFixed(2) + 's';
+        sp.style.opacity = T.stars;
+        deco.append(sp);
       }
-      if (themeMeta) themeMeta.content = a.top;
-      lastPair = pair;
     }
-    setOp(layers[ka], 1);
-    if (kb !== ka) setOp(layers[kb], t);
+    if (T.moon) { const m = img('orb moon', ART + 'moon.webp'); m.style.opacity = T.moon; deco.append(m); }
+    if (T.sun) deco.append(img('orb sun', ART + 'sun.webp'));
+    if (T.clouds) {
+      deco.append(img('cloud c1', `${ART}cloud-${T.clouds}-1.webp`));
+      deco.append(img('cloud c2', `${ART}cloud-${T.clouds}-2.webp`));
+    }
+    sc.prepend(deco);
+  });
 
-    setOp(starLayer, lerp(a.stars, b.stars, t));
-    setOp(dayClouds, lerp(a.day, b.day, t));
-    setOp(roseClouds, lerp(a.rose, b.rose, t));
-    setOp(moon, lerp(a.moon, b.moon, t));
-    setOp(sun, lerp(a.sun, b.sun, t));
-    const y = lerp(a.orbY, b.orbY, t).toFixed(1);
-    const tf = `translate3d(-50%, calc(${y}vh - 50%), 0)`;
-    if (last.get('orb') !== tf) { moon.style.transform = sun.style.transform = tf; last.set('orb', tf); }
-  }
-  let skyQueued = false;
-  addEventListener('scroll', () => {
-    if (skyQueued) return;
-    skyQueued = true;
-    requestAnimationFrame(() => { skyQueued = false; paintSky(); });
-  }, { passive: true });
-  addEventListener('resize', () => { measure(); paintSky(); });
-  addEventListener('load', () => { measure(); paintSky(); });
-  document.fonts && document.fonts.ready.then(() => { measure(); paintSky(); });
-  measure();
-  paintSky();
-
-  // stars
-  const starBox = $('#stars');
-  for (let k = 0; k < 55; k++) {
-    const st = document.createElement('i');
-    if (Math.random() < .15) st.className = 'big';
-    st.style.left = (Math.random() * 100) + '%';
-    st.style.top = (Math.random() * 75) + '%';
-    st.style.animationDelay = (-Math.random() * 3).toFixed(2) + 's';
-    st.style.animationDuration = (2 + Math.random() * 3).toFixed(2) + 's';
-    starBox.appendChild(st);
-  }
-  for (let k = 0; k < 7; k++) {
-    const sp = document.createElement('img');
-    sp.className = 'spark'; sp.alt = '';
-    sp.src = `assets/img/art/sparkle-${(k % 3) + 1}.webp`;
-    sp.style.left = (5 + Math.random() * 90) + '%';
-    sp.style.top = (4 + Math.random() * 70) + '%';
-    sp.style.animationDelay = (-Math.random() * 3).toFixed(2) + 's';
-    starBox.appendChild(sp);
+  // browser bar colour follows the section in the middle of the screen
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeMeta) {
+    const tio = new IntersectionObserver(es => es.forEach(e => {
+      if (e.isIntersecting) themeMeta.content = TIMES[e.target.dataset.time].top;
+    }), { rootMargin: '-50% 0px -50% 0px' });
+    scenes.forEach(sc => tio.observe(sc));
   }
 
   // washi tape on every polaroid

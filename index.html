@@ -16,18 +16,8 @@
 </head>
 <body>
 
-<!-- Sky behind everything: shifts from night → morning → afternoon → sunset → night as she scrolls -->
-<div class="sky" id="sky" aria-hidden="true">
-  <div class="stars" id="stars"></div>
-  <div class="clouds day">
-    <img class="c1" src="assets/img/art/cloud-day-1.webp" alt=""><img class="c2" src="assets/img/art/cloud-day-2.webp" alt=""><img class="c3" src="assets/img/art/cloud-day-3.webp" alt="">
-  </div>
-  <div class="clouds rose">
-    <img class="c1" src="assets/img/art/cloud-rose-1.webp" alt=""><img class="c2" src="assets/img/art/cloud-rose-2.webp" alt=""><img class="c3" src="assets/img/art/cloud-rose-3.webp" alt="">
-  </div>
-  <img class="orb moon" src="assets/img/art/moon.webp" alt="">
-  <img class="orb sun" src="assets/img/art/sun.webp" alt="">
-</div>
+<!-- Each section paints its own sky (see birthday.js); this is just the dark base -->
+<div class="sky" id="sky" aria-hidden="true"></div>
 <canvas id="petals" aria-hidden="true"></canvas>
 
 <audio id="song" src="assets/audio/night-changes.mp3" preload="auto"></audio>

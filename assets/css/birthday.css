@@ -47,27 +47,33 @@ img { display: block; max-width: 100%; }
 p { margin: 0 0 1rem; }
 button { font: inherit; }
 
-/* ---------- sky (layers crossfaded by opacity only) ---------- */
-.sky { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: #12070C; contain: strict; }
-.sky-layer, .stars, .clouds { position: absolute; inset: 0; pointer-events: none; will-change: opacity; }
-.stars i {
-  position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #FFF6E6;
-  animation: twinkle 3s ease-in-out infinite alternate;
+/* ---------- sky: painted per section (see birthday.js) ---------- */
+.sky { position: fixed; inset: 0; z-index: -2; background: #12070C; }
+.scene { isolation: isolate; }
+.deco { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.starfield { position: absolute; inset: 0; }
+.starfield::before, .starfield::after {
+  content: ""; position: absolute; inset: 0;
+  animation: twinkle 3.4s ease-in-out infinite alternate;
 }
-.stars i.big { width: 3px; height: 3px; }
-@keyframes twinkle { from { opacity: .25; } to { opacity: 1; } }
-.orb { /* moon by night, sun by day; position + fade set by birthday.js */
-  position: absolute; left: 86%; top: 0; width: 72px; height: 72px; pointer-events: none;
-  transform: translate3d(-50%, calc(6vh - 50%), 0); will-change: transform, opacity;
+.starfield::before {
+  background-image: radial-gradient(1.6px 1.6px at 12% 22%, #FFF6E6 60%, transparent 62%), radial-gradient(1.2px 1.2px at 68% 8%, #FFF6E6 60%, transparent 62%), radial-gradient(1.4px 1.4px at 34% 61%, #FFF6E6 60%, transparent 62%), radial-gradient(1.8px 1.8px at 86% 44%, #FFF6E6 60%, transparent 62%), radial-gradient(1.2px 1.2px at 52% 83%, #FFF6E6 60%, transparent 62%), radial-gradient(1.3px 1.3px at 8% 76%, #FFF6E6 60%, transparent 62%), radial-gradient(1.5px 1.5px at 77% 92%, #FFF6E6 60%, transparent 62%);
+  background-size: 240px 260px;
 }
-.orb.sun { width: 96px; height: 96px; opacity: 0; }
-.clouds { opacity: 0; }
-.clouds img { position: absolute; width: min(150vw, 1000px); max-width: none; opacity: .6; animation: drift 70s ease-in-out infinite alternate; will-change: transform; }
-.clouds .c1 { top: -3%; left: -40%; }
-.clouds .c2 { top: 4%; left: 35%; width: min(110vw, 700px); animation-duration: 90s; animation-direction: alternate-reverse; }
-.clouds .c3 { top: 84%; left: -45%; animation-duration: 110s; }
+.starfield::after {
+  background-image: radial-gradient(1.2px 1.2px at 25% 12%, #FFF6E6 60%, transparent 62%), radial-gradient(1.7px 1.7px at 58% 36%, #FFF6E6 60%, transparent 62%), radial-gradient(1.3px 1.3px at 91% 19%, #FFF6E6 60%, transparent 62%), radial-gradient(1.5px 1.5px at 40% 88%, #FFF6E6 60%, transparent 62%), radial-gradient(1.2px 1.2px at 15% 50%, #FFF6E6 60%, transparent 62%), radial-gradient(1.3px 1.3px at 72% 66%, #FFF6E6 60%, transparent 62%);
+  background-size: 310px 290px; animation-delay: -1.7s;
+}
+@keyframes twinkle { from { opacity: .3; } to { opacity: 1; } }
+.spark { position: absolute; width: 22px; height: 22px; animation: spark 2.6s ease-in-out infinite alternate; }
+@keyframes spark { from { transform: scale(.7); } to { transform: scale(1.05); } }
+.orb { position: absolute; top: 4.5%; right: 6%; width: 60px; height: 60px; }
+.orb.sun { width: 86px; height: 86px; top: 3%; right: 3%; }
+.cloud { position: absolute; width: min(150vw, 1000px); max-width: none; opacity: .42; animation: drift 70s ease-in-out infinite alternate; }
+.cloud.c1 { top: max(20vh, 22%); left: -45%; }
+.cloud.c2 { top: calc(max(20vh, 22%) + 7vh); left: 40%; width: min(110vw, 700px); opacity: .35; animation-duration: 90s; animation-direction: alternate-reverse; }
 @keyframes drift { from { transform: translateX(-6%); } to { transform: translateX(10%); } }
-.spark { position: absolute; width: 22px; height: 22px; animation: twinkle 2.6s ease-in-out infinite alternate; }
+.letter-scene { background: #2A0E12; }
 
 #petals { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 80; }
 
