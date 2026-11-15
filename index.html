@@ -234,7 +234,7 @@
     <div class="cake-actions">
       <button class="btn btn-light" id="btnMatch" type="button"><span class="matchbox" aria-hidden="true"></span> Grab the match</button>
       <button class="btn btn-light" id="btnWish" type="button" hidden>Okay, I made my wish</button>
-      <button class="btn btn-ghost" id="btnMic" type="button" hidden>Blow into the mic</button>
+      <button class="btn btn-light" id="btnBlow" type="button" hidden>Blow out the candles</button>
     </div>
 
     <div class="wish-card" id="wishCard" aria-live="polite">
@@ -243,11 +243,26 @@
       <p>Thank you for being you. This is your last birthday as my girlfriend, because in three days you'll be my wife.</p>
       <p class="wish-last">Happy birthday. See you on day 354.</p>
       <p class="wish-sign">Fatah</p>
-      <button class="btn btn-ghost-dark" id="btnRelight" type="button">Light them again</button>
+      <div class="wish-actions">
+        <button class="btn btn-wine" id="btnLetter" type="button">Open my letter</button>
+        <button class="btn btn-ghost-dark" id="btnRelight" type="button">Light them again</button>
+      </div>
     </div>
   </section>
 
-  <!-- (coming next: the letter goes here) -->
+  <!-- ============ THE LETTER (revealed after the wish card) ============
+       DRAFT: rewrite this in your own words -->
+  <section class="scene letter-scene" id="letter" hidden>
+    <div class="letter reveal">
+      <span class="note-tape" aria-hidden="true"></span>
+      <p class="letter-to">Gege,</p>
+      <p>Last year on this day, I couldn't even type "happy birthday". This year I made you a whole website. I guess that's what you do to me.</p>
+      <p>Thank you for being the brave one first. For the dream, for that message, for "no wayyy", and for saying yes at four in the morning.</p>
+      <p>I still can't believe the girl who stood behind me in that SD line is the one I get to stand next to for the rest of my life.</p>
+      <p>Happy 26th, my love. I love you.</p>
+      <p class="letter-sign">Fatah</p>
+    </div>
+  </section>
 
 </main>
 

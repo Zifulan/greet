@@ -360,7 +360,7 @@
   const match = $('#match');
   const btnMatch = $('#btnMatch');
   const btnWish = $('#btnWish');
-  const btnMic = $('#btnMic');
+  const btnBlow = $('#btnBlow');
   const wishCard = $('#wishCard');
   let state = 'idle'; // idle | lighting | wish | blow | done
 
@@ -415,25 +415,34 @@
     if (state !== 'wish') return;
     state = 'blow';
     btnWish.hidden = true;
-    say('Now blow out the candles! Tap them one by one, or really blow into your phone.');
-    if (navigator.mediaDevices?.getUserMedia) btnMic.hidden = false;
+    say('Now take a deep breath...');
+    btnBlow.hidden = false;
   });
 
   function blowOut(c) {
-    if (state !== 'blow' || !c.classList.contains('lit')) return;
-    c.classList.remove('lit');
+    if (!c.classList.contains('lit')) return;
+    c.classList.remove('lit', 'gust');
     c.classList.add('out');
-    const left = candles.filter(x => x.classList.contains('lit')).length;
-    if (left === 0) finish();
-    else if (left === 1) say('One more...');
-    else say(`${left} to go. Blow harder!`);
+    if (!candles.some(x => x.classList.contains('lit'))) finish();
   }
-  candles.forEach(c => c.addEventListener('click', () => blowOut(c)));
+  // one breath: the flames lean, then go out one after the other
+  async function blowAll() {
+    if (state !== 'blow') return;
+    state = 'blowing';
+    btnBlow.hidden = true;
+    candles.forEach(c => c.classList.add('gust'));
+    await wait(reduced ? 100 : 520);
+    for (const c of candles) {
+      if (!c.classList.contains('lit')) continue;
+      blowOut(c);
+      await wait(reduced ? 60 : 280);
+    }
+  }
+  btnBlow.addEventListener('click', blowAll);
+  candles.forEach(c => c.addEventListener('click', () => { if (state === 'blow') blowAll(); }));
 
   async function finish() {
     state = 'done';
-    stopMic();
-    btnMic.hidden = true;
     section.classList.remove('is-lit');
     say('Your wish is on its way.');
     petalBurst(170);
@@ -447,50 +456,38 @@
     wishCard.classList.remove('show');
     state = 'idle';
     btnMatch.hidden = false;
+    btnBlow.hidden = true;
     say('The candles aren\'t lit yet. Grab the match first.');
     section.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
-  /* ---------- blow detection via microphone ---------- */
-  let stream = null, actx = null, raf = 0;
-  async function startMic() {
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
-      say('The mic isn\'t available. Just tap the candles.');
-      btnMic.hidden = true;
-      return;
+  /* ---------- the letter ---------- */
+  const letter = $('#letter');
+  $('#btnLetter').addEventListener('click', () => {
+    letter.hidden = false;
+    watchReveals(letter);
+    requestAnimationFrame(() => letter.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  });
+
+  /* ---------- music safety net ----------
+     If the song has already finished by the time she reaches the cake,
+     softly bring back the last chorus (starts at 2:53). */
+  let encored = false;
+  const cio = new IntersectionObserver(es => {
+    if (encored || !es.some(e => e.isIntersecting)) return;
+    if (songOk && song.ended) {
+      encored = true;
+      cio.disconnect();
+      song.currentTime = 173;
+      song.volume = 0;
+      song.play().then(() => {
+        fadeTo(.75, 3000);
+        musicBtn.classList.remove('paused');
+        musicBtn.setAttribute('aria-label', 'Pause music');
+      }).catch(() => {});
     }
-    actx = new (window.AudioContext || window.webkitAudioContext)();
-    const an = actx.createAnalyser();
-    an.fftSize = 512;
-    actx.createMediaStreamSource(stream).connect(an);
-    const buf = new Uint8Array(an.fftSize);
-    btnMic.textContent = 'Listening... blow!';
-    let strong = 0;
-    const loop = () => {
-      an.getByteTimeDomainData(buf);
-      let sum = 0;
-      for (const v of buf) { const x = (v - 128) / 128; sum += x * x; }
-      const rms = Math.sqrt(sum / buf.length);
-      strong = rms > .12 ? strong + 1 : Math.max(0, strong - 1);
-      if (strong > 6) {
-        strong = 0;
-        const lit = candles.filter(c => c.classList.contains('lit'));
-        if (lit.length) blowOut(lit[(Math.random() * lit.length) | 0]);
-      }
-      raf = requestAnimationFrame(loop);
-    };
-    loop();
-  }
-  function stopMic() {
-    cancelAnimationFrame(raf);
-    stream?.getTracks().forEach(t => t.stop());
-    actx?.close();
-    stream = actx = null;
-    btnMic.textContent = 'Blow into the mic';
-  }
-  btnMic.addEventListener('click', () => (stream ? stopMic() : startMic()));
+  }, { threshold: .25 });
+  cio.observe(section);
 
   $$('.scene:not(.hero)').forEach(sc => watchReveals(sc));
 })();
