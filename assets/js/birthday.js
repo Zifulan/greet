@@ -20,15 +20,15 @@
      waiting while testing (before 9 Dec:  ?preview&fast).
      ===================================================== */
   const READING = {
-    wordsPerSecond: 4.6,      // about 275 words a minute: brisk but natural for short lines. A slower reader can pause
+    wordsPerSecond: 3.3,      // about 200 words a minute: relaxed, so she can take each line in while it plays hands-free
     glance: .15,              // seconds to notice a new line before reading it
     photo: .8,                // seconds to take in a photo
-    pause: .7,                // seconds to let it sink in after the last line
-    min: 3.5,                 // no chapter holds for less than this
+    pause: 1.6,               // seconds to let it sink in after the last line
+    min: 6,                   // no chapter holds for less than this
     extra: { confess: 1, tonight: 1, us: 4 },   // a little longer where she wants a beat (or to flip the photos)
     interact: 6,              // seconds the page waits after she touches something (flipping a photo)
     assistAfter: 6,           // seconds after she could have read the cake heading before the match lights the candles for her
-    letterWordsPerSecond: 4.2,// how fast the letter scrolls by itself (a little slower: it is the letter)
+    letterWordsPerSecond: 3.2,// how fast the letter scrolls by itself (a little slower: it is the letter)
   };
   const SKY = { years: 6, engaged: 5 };    // seconds the sky takes to change in those two chapters
   const FAST = qs.has('fast');
