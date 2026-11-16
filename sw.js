@@ -1,6 +1,6 @@
 // Offline support so the page opens even without internet at midnight.
 // Bump VERSION whenever files change (e.g. after adding photos).
-const VERSION = 'v29';
+const VERSION = 'v31';
 const CACHE = 'gege-' + VERSION;
 const CORE = [
   './',

@@ -27,13 +27,13 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; overscroll-behavior: none; overflow-x: hidden; overflow-x: clip; }
+html { -webkit-text-size-adjust: 100%; overscroll-behavior: none; overflow-x: hidden; overflow-x: clip; }
 body {
   margin: 0;
   background: var(--maroon-deep);
   color: var(--fg);
   font-family: var(--display);
-  font-size: 18px;
+  font-size: 1.125rem;
   line-height: 1.6;
   overflow-x: hidden;
   overflow-x: clip;
@@ -113,13 +113,6 @@ button { font: inherit; }
 .hero .display { font-size: clamp(2.9rem, 13vw, 4.6rem); }
 .hero .display em { font-size: 1.12em; }
 .hero-note { margin-top: 1.4rem; }
-.scroll-cue {
-  position: absolute; left: 50%; bottom: calc(1.2rem + env(safe-area-inset-bottom)); margin: 0; translate: -50% 0;
-  font-family: var(--hand); font-size: 1.2rem; color: var(--fg-soft);
-  animation: cue 1.8s var(--ease) infinite;
-}
-.scroll-cue::after { content: ""; display: block; width: 9px; height: 9px; margin: .15rem auto 0; border: solid currentColor; border-width: 0 2px 2px 0; rotate: 45deg; }
-@keyframes cue { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
 
 .reveal { opacity: 0; transform: translateY(18px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
 .reveal.in { opacity: 1; transform: none; }
@@ -449,7 +442,7 @@ button { font: inherit; }
 
 @media (prefers-reduced-motion: reduce) {
   .reveal, .polaroid.reveal { transition: opacity .4s; filter: none; }
-  .scroll-cue, .bars i, .gate-btn::after, .match-stick, .cloud { animation: none; }
+  .bars i, .gate-btn::after, .match-stick, .cloud { animation: none; }
   .candle.lit .flame { animation: none; }
 }
 
@@ -506,8 +499,6 @@ html.gated, html.gated body { overflow: hidden; height: 100vh; height: 100dvh; }
 }
 @keyframes pulse { 0% { transform: scale(.94); opacity: .9; } 100% { transform: scale(1.14); opacity: 0; } }
 .gate-btn.gone { opacity: 0; pointer-events: none; transition: opacity .45s var(--ease); }
-html.gated .scroll-cue { opacity: 0; animation: none; }
-.scroll-cue { transition: opacity 1s var(--ease) 1.6s; }
 
 /* =========================================================
    STICKY SKY TRACKS
@@ -606,3 +597,106 @@ html.gated .scroll-cue { opacity: 0; animation: none; }
 .invite-scene .script { font-family: "Pinyon Script", cursive; font-weight: 400; }
 .invite-scene .caps { font-weight: 500; font-size: .82rem; letter-spacing: .22em; text-transform: uppercase; }
 .invite-scene .save-card-wrap { margin: 2rem 0 4.5rem; }
+
+
+/* =========================================================
+   GUIDED CHAPTERS
+   The page never scrolls by hand: each chapter holds, then Continue
+   glides to the next one. The letter page is the one place that scrolls.
+   ========================================================= */
+html.guided { overflow: hidden; overscroll-behavior: none; touch-action: none; }
+html.guided body { touch-action: none; }
+html.guided.free { overflow-x: clip; overflow-y: auto; touch-action: pan-y; }
+html.guided.free body { touch-action: pan-y; }
+html.guided .scene.track, html.guided .scene.track.short { min-height: 100vh; min-height: 100svh; }
+html.guided .pin { position: relative; height: 100vh; height: 100svh; }
+.fast .reveal, .fast .polaroid.reveal { transition-duration: .18s !important; }
+
+/* Continue: a thin line fills while the chapter holds, then it turns into the button */
+.next {
+  position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); translate: -50% 0; z-index: 85;
+  display: grid; place-items: center; pointer-events: none;
+}
+.hold-line {
+  grid-area: 1 / 1; width: 120px; height: 3px; border-radius: 3px; overflow: hidden;
+  background: rgba(245,234,216,.3); box-shadow: 0 0 0 1px rgba(43,20,22,.3);
+  opacity: 0; transition: opacity .5s var(--ease);
+}
+.hold-line i { display: block; height: 100%; background: var(--cream); transform-origin: left; transform: scaleX(0); }
+.next.holding .hold-line { opacity: 1; }
+.next-btn {
+  grid-area: 1 / 1; min-height: 46px; padding: .6rem 1.6rem .6rem 1.8rem; border-radius: 999px;
+  border: 1px solid rgba(245,234,216,.4); background: rgba(43,20,22,.8); color: var(--cream);
+  font: 500 1rem var(--display); letter-spacing: .04em; white-space: nowrap;
+  box-shadow: 0 8px 22px rgba(0,0,0,.3);
+  opacity: 0; transform: translateY(8px); transition: opacity .7s var(--ease), transform .7s var(--ease);
+}
+.next-btn::after { content: ""; display: inline-block; width: 7px; height: 7px; margin: 0 0 3px .65rem; border: solid currentColor; border-width: 0 2px 2px 0; rotate: 45deg; }
+.next.ready .next-btn { opacity: 1; transform: none; pointer-events: auto; cursor: pointer; }
+.next-btn:active { transform: scale(.97); }
+
+/* page swaps (letter, then save the date) */
+.veil { position: fixed; inset: 0; z-index: 95; background: #12070C; opacity: 0; pointer-events: none; transition: opacity .5s var(--ease); }
+.veil.on { opacity: 1; pointer-events: auto; }
+.page-letter .scene:not(#letter), .page-invite .scene:not(#invite) { display: none !important; }
+.page-letter .next, .page-invite .next { display: none; }
+
+/* cake: the match waits until the chapter has told its story */
+.match { opacity: 0; pointer-events: none; }
+.match.armed { opacity: 1; pointer-events: auto; }
+.match.gone { opacity: 0; pointer-events: none; }
+
+/* Beat 1: the heading folds away and the wish rises over the lower cake; the candles keep glowing */
+.cake-head-wrap { display: grid; grid-template-rows: 1fr; width: 100%; transition: grid-template-rows .9s var(--ease); }
+.cake-head { min-height: 0; overflow: hidden; transition: opacity .6s var(--ease); }
+.cake-section { transition: padding-top .9s var(--ease); }
+.cake-stage { transition: margin-top .9s var(--ease); }
+.wish-mode .cake-head-wrap { grid-template-rows: 0fr; }
+.wish-mode .cake-head { opacity: 0; }
+.cake-section.wish-mode { padding-top: calc(2.4rem + env(safe-area-inset-top)); }
+.wish-mode .cake-stage { margin-top: .8rem; }
+.wish-live { display: flex; justify-content: center; width: 100%; }
+.wish-card {
+  display: none; z-index: 4; margin: 0 auto; width: min(440px, 100%); padding: 1.5rem 1.3rem 1.2rem;
+  font-size: clamp(.86rem, 2.5svh, 1.04rem); line-height: 1.45;
+  opacity: 1; transform: none; pointer-events: auto; transition: none;
+}
+.wish-card.show { display: block; animation: rise .9s var(--ease) both; }
+.wish-mode .wish-card { margin-top: var(--lift, 0px); }
+.wish-card p { margin: 0 0 .7em; }
+.wish-card .wish-title { font-size: clamp(1.45rem, 4.4svh, 1.9rem); margin: 0 0 .5em; }
+.wish-card .wish-last { margin: .9em 0 0; }
+.wish-card .wish-sign { font-size: clamp(1.5rem, 4.2svh, 1.9rem); margin: .35em 0 .5em; }
+.wish-card .cta { margin-top: .2rem; }
+@keyframes rise { from { opacity: 0; transform: translateY(24px); } }
+
+/* small texts that were a little under 4.5:1 on their sky */
+.confess .day-tag { color: var(--fg); }
+.scene[data-time="sunrise"] .kicker { color: var(--fg); }
+.scene[data-time="sunset"] .kicker { color: rgba(251,239,224,.97); }
+.notif-app { color: rgba(43,20,22,.76); }
+
+
+/* =========================================================
+   FIT: every chapter fits one screen and keeps the Continue button's space free
+   ========================================================= */
+@media (max-height: 670px) { html { font-size: 15px; } }
+@media (max-height: 620px) { html { font-size: 13.8px; } }
+@media (max-height: 580px) { html { font-size: 12.8px; } }
+html.guided .scene:not(.hero):not(.letter-scene):not(.invite-scene):not(.track) { padding-top: calc(2.8rem + env(safe-area-inset-top)); padding-bottom: 5.4rem; }
+html.guided .pin { padding-top: calc(2.8rem + env(safe-area-inset-top)); padding-bottom: 5.4rem; }
+html.guided .doodles { margin-bottom: .6rem; }
+html.guided .body { margin-top: 1.5rem; }
+html.guided .year-counter { font-size: clamp(4rem, 23vw, 8rem); }
+html.guided .pair .polaroid:last-child { margin-top: 1.4rem; }
+html.guided .pile { grid-template-columns: repeat(2, min(39vw, 185px)); gap: 1rem 4vw; margin-top: 1.2rem; }
+.firsts-chat .chatlog { margin-top: 0; }
+
+/* cake: the whole cake fits under its heading */
+.cake-section { padding-top: calc(3.2rem + env(safe-area-inset-top)); }
+.cake-stage { width: min(300px, 80vw, 46svh); margin-top: 2.2rem; }
+.cake-section .lastyear { margin-bottom: 1.1rem; }
+.cake-section.wish-mode { padding-top: calc(2.8rem + env(safe-area-inset-top)); }
+.wish-card { font-size: clamp(.78rem, 2.3svh, 1.04rem); }
+
+.confess .day-tag { font-size: 1.6rem; }

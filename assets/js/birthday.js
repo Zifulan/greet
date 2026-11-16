@@ -7,6 +7,36 @@
   const buzz = ms => { try { navigator.vibrate?.(ms); } catch {} };
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const root = document.documentElement;
+  const qs = new URLSearchParams(location.search);
+
+  /* =====================================================
+     PACING  (edit the numbers here)
+     The page never scrolls by hand. Each chapter glides in, shows its
+     text in order, holds for the seconds below, then a Continue button
+     appears. Open the link with ?fast to skip the waiting while testing
+     (combine with ?preview before 9 Dec:  ?preview&fast).
+     ===================================================== */
+  const HOLD = {              // seconds the chapter holds before Continue appears
+    hero: 8,
+    story: 13,
+    years: 21,                // includes the sky changing from noon to night
+    dream: 14,
+    confess: 16,
+    firsts: 13,               // the ticket and the first-date story
+    'firsts-chat': 14,        // the 15 January chat
+    us: 24,                   // time to flip the photos
+    engaged: 9,
+    tonight: 16,
+  };
+  const SKY = {               // [seconds before the sky starts to change, seconds the change takes]
+    years: [10, 10],
+    engaged: [2.5, 6],
+  };
+  const FAST = qs.has('fast');
+  const PACE = FAST ? .12 : 1;
+  const sec = s => Math.max(FAST ? 600 : 0, s * 1000 * PACE);
+  const GLIDE = reduced ? 0 : (FAST ? 450 : 1100);   // ms to glide from one chapter to the next
+  if (FAST) root.classList.add('fast');
 
   // Midnight in Jakarta (WIB, UTC+7), written with its offset so it never depends on the phone's time zone.
   const UNLOCK_AT = Date.parse('2026-12-09T00:00:00+07:00');
@@ -20,7 +50,6 @@
     set(k, v) { try { localStorage.setItem(k, v); } catch {} },
     del(k) { try { localStorage.removeItem(k); } catch {} },
   };
-  const qs = new URLSearchParams(location.search);
   if (qs.has('preview')) {
     if (qs.get('preview') === 'off') store.del('previewUntil');
     else store.set('previewUntil', String(Date.now() + 30 * 60 * 1000));
@@ -32,7 +61,7 @@
   if (PREVIEW) {
     const tag = document.createElement('div');
     tag.className = 'preview-tag';
-    tag.textContent = `TEST MODE · ends ${new Date(previewUntil).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+    tag.textContent = `TEST MODE · ends ${new Date(previewUntil).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}${FAST ? ' · FAST' : ''}`;
     document.body.appendChild(tag);
   }
 
@@ -56,7 +85,6 @@
      ===================================================== */
   const cv = $('#petals');
   const g = cv.getContext('2d');
-  const petalColors = ['#800020', '#A33A4E', '#5C1A1B', '#E7A9B4', '#F5EAD8', '#3F6B4A', '#5A8C64', '#8B5E3C'];
   let petals = [], embers = [], running = false;
   const sprites = Array.from({ length: 8 }, (_, i) => { const im = new Image(); im.src = `assets/img/art/petal-${i + 1}.webp`; return im; });
 
@@ -79,7 +107,6 @@
       vr: (Math.random() - .5) * .08,
       sway: Math.random() * Math.PI * 2,
       flip: Math.random() * Math.PI * 2,
-      color: petalColors[(Math.random() * petalColors.length) | 0],
       sprite: sprites[(Math.random() * sprites.length) | 0],
     };
   }
@@ -104,21 +131,13 @@
     if (!running) { running = true; requestAnimationFrame(tick); }
   }
   function drawPetal(p) {
+    if (!(p.sprite.complete && p.sprite.naturalWidth)) return;
     g.save();
     g.translate(p.x, p.y);
     g.rotate(p.rot);
     g.scale(1, Math.abs(Math.cos(p.flip)) * .8 + .2);
-    if (p.sprite.complete && p.sprite.naturalWidth) {
-      const d = p.size * 2.1;
-      g.drawImage(p.sprite, -d / 2, -d / 2, d, d);
-    } else {
-      g.fillStyle = p.color;
-      g.beginPath();
-      g.moveTo(0, -p.size);
-      g.bezierCurveTo(p.size * .8, -p.size * .6, p.size * .6, p.size * .6, 0, p.size);
-      g.bezierCurveTo(-p.size * .6, p.size * .6, -p.size * .8, -p.size * .6, 0, -p.size);
-      g.fill();
-    }
+    const d = p.size * 2.1;
+    g.drawImage(p.sprite, -d / 2, -d / 2, d, d);
     g.restore();
   }
   function tick() {
@@ -149,24 +168,6 @@
     g.globalAlpha = 1;
     if (petals.length || embers.length) requestAnimationFrame(tick);
     else { running = false; g.clearRect(0, 0, innerWidth, innerHeight); }
-  }
-
-  /* =====================================================
-     REVEAL ON SCROLL
-     ===================================================== */
-  const io = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-    });
-  }, { threshold: .2 });
-  function watchReveals(scope = document) {
-    $$('.reveal', scope).forEach(el => {
-      if (!el.style.transitionDelay) {
-        const sib = el.classList.contains('polaroid') ? [...el.parentElement.children].indexOf(el) : 0;
-        el.style.transitionDelay = sib * 160 + 'ms';
-      }
-      io.observe(el);
-    });
   }
 
   /* =====================================================
@@ -221,45 +222,10 @@
   });
 
   /* =====================================================
-     START
-     Before 9 Dec (WIB): the plain invitation card.
-     From midnight: the hero, gated behind "Tap to open".
-     ===================================================== */
-  const hero = $('.hero');
-  const openBtn = $('#openBtn');
-  if (isLocked()) {
-    $('#waiting').hidden = false;
-    document.body.classList.add('is-locked');
-  } else {
-    root.classList.add('gated');
-    try { history.scrollRestoration = 'manual'; } catch {}
-    scrollTo(0, 0);
-    requestAnimationFrame(() => {
-      $('.kicker', hero).classList.add('in');
-      openBtn.classList.add('ready');
-    });
-  }
-  openBtn.addEventListener('click', () => {
-    if (!root.classList.contains('gated')) return;
-    playSong();                       // must run inside the tap
-    buzz(15);
-    root.classList.remove('gated');
-    openBtn.classList.add('gone');
-    $$('.hero-body .reveal', hero).forEach((el, i) => {
-      el.style.transitionDelay = (reduced ? 0 : 250 + i * 260) + 'ms';
-      el.classList.add('in');
-    });
-    petalShower(70);
-    measure();
-  });
-
-  /* =====================================================
      SKY
-     Every section paints its own sky, so text always sits on the right
-     background. Two sections are taller "tracks" whose content sticks
-     while the sky changes behind it (noon → dusk → night, sunset → night).
-     A single requestAnimationFrame pass per scroll frame writes only
-     transform/opacity, with progress clamped to 0..1.
+     Every chapter paints its own sky (built once, nothing moves while she
+     reads). Chapter two and the engagement are "tracks": the sky changes
+     over time while the chapter holds (noon -> dusk -> night).
      ===================================================== */
   const TIMES = {
     night:   { top: '#12070C', bottom: '#2A0E12', stars: 1,  moon: 1,  sun: 0, clouds: '' },
@@ -296,13 +262,12 @@
   };
 
   const scenes = $$('.scene[data-time]');
-  const plain = [];   // { sc, orbs, clouds, stars, top, h }   gentle parallax
-  const tracks = [];  // { sc, apply, top, h, last }           sticky sky changes
+  const tracks = new Map();   // scene -> { apply(p) }
 
   scenes.forEach((sc, i) => {
     const T = TIMES[sc.dataset.time];
     const prev = scenes[i - 1], next = scenes[i + 1];
-    // start on the exact colour the previous section ends on
+    // start on the exact colour the previous chapter ends on
     const from = !prev ? T.top
       : prev.dataset.timeEnd ? TIMES[prev.dataset.timeEnd].top
       : mix(TIMES[prev.dataset.time].bottom, T.top);
@@ -329,15 +294,14 @@
       pin.prepend(deco);
       sc.style.background = E.top;
       const fade = sc.hasAttribute('data-fade');
-      tracks.push({
-        sc, top: 0, h: 0, last: -1,
-        apply(p, vh) {
+      tracks.set(sc, {
+        apply(p) {
           const mid = M ? smooth(p, .26, .58) : 0;
           const end = M ? smooth(p, .6, .95) : smooth(p, .3, .92);
           if (midL) midL.style.opacity = mid;
           endL.style.opacity = end;
           stars.style.opacity = end;
-          sun.style.transform = `translate3d(0, ${(p * vh * .5).toFixed(1)}px, 0)`;
+          sun.style.transform = `translate3d(0, ${(p * innerHeight * .5).toFixed(1)}px, 0)`;
           sun.style.opacity = 1 - smooth(p, .5, .86);
           moon.style.transform = `translate3d(0, ${((1 - smooth(p, .6, 1)) * 46).toFixed(1)}px, 0)`;
           moon.style.opacity = smooth(p, .68, 1);
@@ -356,57 +320,27 @@
 
     const to = next ? mix(T.bottom, TIMES[next.dataset.time].top) : T.bottom;
     sc.style.background = `linear-gradient(180deg, ${from} 0, ${T.top} min(24vh, 28%), ${T.bottom} max(calc(100% - 24vh), 72%), ${to} 100%)`;
-    const item = { sc, orbs: [], clouds: null, stars: null, top: 0, h: 0, last: -1 };
-    if (T.stars) { item.stars = starfield(T.stars); deco.append(item.stars); }
-    if (T.moon) { const m = img('orb moon', ART + 'moon.webp'); m.style.opacity = T.moon; deco.append(m); item.orbs.push(m); }
-    if (T.sun) { const s = img('orb sun', ART + 'sun.webp'); deco.append(s); item.orbs.push(s); }
-    if (T.clouds) { item.clouds = cloudset(T.clouds); deco.append(item.clouds); }
+    if (T.stars) deco.append(starfield(T.stars));
+    if (T.moon) { const m = img('orb moon', ART + 'moon.webp'); m.style.opacity = T.moon; deco.append(m); }
+    if (T.sun) deco.append(img('orb sun', ART + 'sun.webp'));
+    if (T.clouds) deco.append(cloudset(T.clouds));
     sc.prepend(deco);
-    plain.push(item);
   });
 
-  let vh = innerHeight;
-  function measure() {
-    vh = innerHeight;
-    for (const it of plain) { it.top = it.sc.offsetTop; it.h = it.sc.offsetHeight; it.last = -1; }
-    for (const t of tracks) { t.top = t.sc.offsetTop; t.h = t.sc.offsetHeight; t.last = -1; }
-    queueFrame();
+  function playSky(sc, [delay, dur]) {
+    const fx = tracks.get(sc);
+    if (!fx) return;
+    const t0 = performance.now(), d = delay * 1000 * PACE, D = Math.max(300, dur * 1000 * PACE);
+    const step = now => {
+      const p = clamp((now - t0 - d) / D);
+      fx.apply(p);
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
   }
-  function frame() {
-    queued = false;
-    const y = scrollY;
-    for (const t of tracks) {
-      if (y + vh < t.top || y > t.top + t.h) continue;        // off screen
-      const p = Math.round(clamp((y - t.top) / Math.max(1, t.h - vh)) * 500) / 500;
-      if (p === t.last) continue;
-      t.last = p;
-      t.apply(p, vh);
-    }
-    if (reduced) return;
-    for (const it of plain) {
-      if (y + vh < it.top || y > it.top + it.h) continue;
-      const p = Math.round(clamp((y + vh - it.top) / (it.h + vh)) * 400) / 400; // 0 entering … 1 leaving
-      if (p === it.last) continue;
-      it.last = p;
-      const d = p - .5;
-      for (const o of it.orbs) o.style.transform = `translate3d(0, ${(d * 70).toFixed(1)}px, 0)`;
-      if (it.clouds) it.clouds.style.transform = `translate3d(0, ${(d * -46).toFixed(1)}px, 0)`;
-      if (it.stars) it.stars.style.transform = `translate3d(0, ${(d * 30).toFixed(1)}px, 0)`;
-    }
-  }
-  let queued = false;
-  function queueFrame() {
-    if (queued) return;
-    queued = true;
-    requestAnimationFrame(frame);
-  }
-  addEventListener('scroll', queueFrame, { passive: true });
-  addEventListener('resize', measure);
-  addEventListener('load', measure);
-  document.fonts?.ready.then(measure);
-  measure();
+  tracks.forEach(fx => fx.apply(0));
 
-  // browser bar colour follows the section in the middle of the screen
+  // browser bar colour follows the chapter on screen
   const themeMeta = document.querySelector('meta[name="theme-color"]');
   if (themeMeta) {
     const tio = new IntersectionObserver(es => es.forEach(e => {
@@ -425,23 +359,152 @@
   });
 
   /* =====================================================
-     YEAR COUNTER: rolls 2013 → 2025 once it's in view
+     REVEALS: a chapter's text appears one piece at a time when it arrives
      ===================================================== */
+  const STEP = e => e.classList.contains('bubble') ? 1100 : e.matches('.polaroid, .ticket, .notif') ? 420 : 520;
+  function revealList(items, base = 250) {
+    let t = base, last = base;
+    for (const e of items) {
+      if (e.classList.contains('in')) continue;
+      e.style.transitionDelay = Math.round(t * PACE) + 'ms';
+      e.classList.add('in');
+      last = t; t += STEP(e);
+    }
+    return Math.round((last + 900) * PACE);       // ms until the last piece has finished fading in
+  }
+  const stopOf = e => e.closest('[data-stop]');
+  const revealStop = (stop, base) => revealList($$('.reveal', stop).filter(e => stopOf(e) === stop), base);
+
   const yearEl = $('#yearCounter'), yearFill = $('#yearFill');
-  const yio = new IntersectionObserver(es => {
-    if (!es.some(e => e.isIntersecting)) return;
-    yio.disconnect();
-    const t0 = performance.now(), dur = reduced ? 300 : 2600;
+  function rollYears() {
+    const t0 = performance.now() + 1500 * PACE, dur = reduced ? 300 : Math.max(300, 2400 * PACE);
     const step = now => {
-      const k = Math.min(1, (now - t0) / dur);
-      const e = 1 - Math.pow(1 - k, 3); // ease-out
+      const k = clamp((now - t0) / dur);
+      const e = 1 - Math.pow(1 - k, 3);
       yearEl.textContent = String(2013 + Math.round(e * 12));
       yearFill.style.transform = `scaleX(${e})`;
       if (k < 1) requestAnimationFrame(step);
     };
-    setTimeout(() => requestAnimationFrame(step), 350);
-  }, { threshold: .6 });
-  yio.observe(yearEl);
+    requestAnimationFrame(step);
+  }
+
+  /* =====================================================
+     GUIDED FLOW: the page only moves when she presses Continue
+     ===================================================== */
+  const STOPS = $$('[data-stop]');
+  const hero = $('.hero');
+  const openBtn = $('#openBtn');
+  const nextBox = $('#next'), nextBtn = $('#nextBtn'), holdFill = $('#holdFill');
+  let cur = -1, ready = false, gliding = false, anchorY = 0;
+  const locked = () => root.classList.contains('guided') && !root.classList.contains('free');
+
+  function glideTo(y, ms) {
+    return new Promise(res => {
+      const y0 = scrollY, dy = y - y0;
+      if (!ms || Math.abs(dy) < 2) { window.scrollTo(0, y); return res(); }
+      const t0 = performance.now();
+      gliding = true;
+      const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      const step = now => {
+        const k = Math.min(1, (now - t0) / ms);
+        window.scrollTo(0, y0 + dy * ease(k));
+        if (k < 1) requestAnimationFrame(step); else { gliding = false; res(); }
+      };
+      requestAnimationFrame(step);
+    });
+  }
+  function targetFor(stop) {
+    const top = stop.getBoundingClientRect().top + scrollY;
+    if (stop.classList.contains('scene')) return Math.round(top);
+    const scene = stop.closest('.scene');
+    const sTop = scene.getBoundingClientRect().top + scrollY, sBottom = sTop + scene.offsetHeight;
+    return Math.round(clamp(top - 72, sTop, Math.max(sTop, sBottom - innerHeight)));
+  }
+
+  function showHold(ms) {
+    ready = false;
+    nextBox.classList.remove('ready'); nextBox.classList.add('holding');
+    holdFill.style.transition = 'none';
+    holdFill.style.transform = 'scaleX(0)';
+    void holdFill.offsetWidth;
+    holdFill.style.transition = `transform ${ms}ms linear`;
+    holdFill.style.transform = 'scaleX(1)';
+  }
+  function showNext() { ready = true; nextBox.classList.remove('holding'); nextBox.classList.add('ready'); }
+  function hideNext() { ready = false; nextBox.classList.remove('holding', 'ready'); }
+
+  async function enter(i) {
+    cur = i;
+    const stop = STOPS[i], key = stop.dataset.stop;
+    hideNext();
+    anchorY = targetFor(stop);
+    glideTo(anchorY, GLIDE);
+    await wait(GLIDE * .65);            // the text starts fading in as the glide settles
+    if (cur !== i) return;
+    const done = revealStop(stop, key === 'cake' ? 300 : 250);
+    if (key === 'years') rollYears();
+    if (SKY[key]) playSky(stop, SKY[key]);
+    if (key === 'cake') return cakeArrive(done);
+    const hold = Math.max(sec(HOLD[key] ?? 12), done + sec(2));
+    showHold(hold);
+    await wait(hold);
+    if (cur === i) showNext();
+  }
+  function advance() {
+    if (!ready || cur >= STOPS.length - 1) return;
+    buzz(10);
+    enter(cur + 1);
+  }
+  nextBtn.addEventListener('click', advance);
+
+  // no hand scrolling: block touch, wheel and keys (except on the free-scrolling letter page)
+  addEventListener('touchmove', e => { if (locked()) e.preventDefault(); }, { passive: false });
+  addEventListener('wheel', e => { if (locked()) e.preventDefault(); }, { passive: false });
+  addEventListener('keydown', e => {
+    if (!locked()) return;
+    if (![' ', 'ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End'].includes(e.key)) return;
+    if (e.target.closest?.('button, a, [role="button"]')) return;
+    e.preventDefault();
+    if (e.key === ' ' || e.key === 'ArrowDown' || e.key === 'PageDown') advance();
+  });
+  // if anything nudges the page (a focus jump, say), put it back
+  addEventListener('scroll', () => {
+    if (locked() && !gliding && cur >= 0 && Math.abs(scrollY - anchorY) > 3) window.scrollTo(0, anchorY);
+  }, { passive: true });
+  // once Continue is showing, swiping up works too
+  let sx = 0, sy = 0, sTarget = null;
+  addEventListener('pointerdown', e => { sx = e.clientX; sy = e.clientY; sTarget = e.target; }, { passive: true });
+  addEventListener('pointerup', e => {
+    if (!ready || !locked() || !sTarget?.closest) return;
+    if (sTarget.closest('#match, .candle, button, a')) return;
+    const dy = e.clientY - sy, dx = e.clientX - sx;
+    if (dy < -56 && Math.abs(dx) < 90) advance();
+  }, { passive: true });
+
+  /* =====================================================
+     START: the invitation card before 9 Dec (WIB), the gate after midnight
+     ===================================================== */
+  if (isLocked()) {
+    $('#waiting').hidden = false;
+    document.body.classList.add('is-locked');
+  } else {
+    root.classList.add('guided', 'gated');
+    try { history.scrollRestoration = 'manual'; } catch {}
+    window.scrollTo(0, 0);
+    requestAnimationFrame(() => {
+      $('.kicker', hero).classList.add('in');
+      openBtn.classList.add('ready');
+    });
+  }
+  openBtn.addEventListener('click', () => {
+    if (!root.classList.contains('gated')) return;
+    playSong();                       // must run inside the tap
+    buzz(15);
+    root.classList.remove('gated');
+    openBtn.classList.add('gone');
+    petalShower(70);
+    enter(0);
+  });
 
   /* =====================================================
      CHAPTER FOUR: tap a photo to flip it
@@ -461,8 +524,8 @@
   });
 
   /* =====================================================
-     CAKE: strike the match, light the 2 and the 6 (drag, or tap each)
-     The candles stay lit. Then three beats: wish → letter → save the date.
+     CAKE: strike the match, light the 2 and the 6 (drag, or tap each).
+     The candles stay lit. Then three beats: wish, letter, save the date.
      ===================================================== */
   const section = $('#cake');
   const stepText = $('#stepText');
@@ -471,9 +534,9 @@
   const matchTip = $('.match-tip', match);
   const wishCard = $('#wishCard');
   const btnLetter = $('#btnLetter'), btnLast = $('#btnLast');
-  const letter = $('#letter'), invite = $('#invite');
+  const letterEl = $('#letter'), inviteEl = $('#invite');
   const LIGHT_RADIUS = 30; // px between match head and wick
-  let matchLit = false, allLit = false, drag = null, hopping = false;
+  let armed = false, matchLit = false, allLit = false, drag = null, hopping = false;
   const off = { x: 0, y: 0 };
 
   function say(text) {
@@ -485,8 +548,14 @@
   const wickPos = c => center(c.getBoundingClientRect());
   const place = () => { match.style.transform = `translate3d(${off.x.toFixed(1)}px, ${off.y.toFixed(1)}px, 0)`; };
 
+  function cakeArrive(revealMs) {
+    setTimeout(() => { armed = true; match.classList.add('armed'); }, revealMs * .6);
+    // if the song already ran out and is looping softly, bring the last chorus back for the cake
+    if (looped && songOk) { song.currentTime = 173; fadeTo(.75, 3000); }
+  }
+
   function ignite() {
-    if (matchLit || allLit) return;
+    if (!armed || matchLit || allLit) return;
     matchLit = true;
     match.classList.add('burning');
     buzz(25);
@@ -514,9 +583,9 @@
     }
   }
 
-  // --- drag (touch-action: none on the match, so it never fights page scrolling)
+  // --- drag (touch-action: none on the match, so it never fights anything)
   match.addEventListener('pointerdown', e => {
-    if (allLit || hopping) return;
+    if (!armed || allLit || hopping) return;
     e.preventDefault();
     try { match.setPointerCapture(e.pointerId); } catch {}
     drag = { id: e.pointerId, sx: e.clientX, sy: e.clientY, ox: off.x, oy: off.y };
@@ -544,7 +613,7 @@
 
   // --- two-tap fallback: tap the match, then tap each candle
   async function hopTo(c) {
-    if (allLit || hopping || drag || c.classList.contains('lit')) return;
+    if (!armed || allLit || hopping || drag || c.classList.contains('lit')) return;
     hopping = true;
     ignite();
     const t = tipPos(), w = wickPos(c);
@@ -563,16 +632,14 @@
   });
 
   // --- embers drift up from the flames while the cake is on screen
-  let cakeOnScreen = false;
-  new IntersectionObserver(es => { cakeOnScreen = es.some(e => e.isIntersecting); }, { threshold: .1 }).observe($('.cake-stage'));
   setInterval(() => {
-    if (!cakeOnScreen || document.hidden || reduced) return;
+    if (cur < STOPS.length - 1 || document.hidden || reduced) return;
     for (const c of candles) {
       if (c.classList.contains('lit') && Math.random() < .55) { const w = wickPos(c); ember(w.x, w.y - 10); }
     }
   }, 420);
 
-  // --- the three beats
+  // --- Beat 1: the wish rises over the lower cake while the candles keep glowing
   async function finale() {
     if (allLit) return;
     allLit = true;
@@ -580,32 +647,33 @@
     match.classList.remove('dragging', 'burning');
     match.classList.add('gone');
     say('Close your eyes and make a wish...');
-    await wait(reduced ? 600 : 2500);
-
-    // Beat 1: the wish, with both candles still glowing
+    await wait(reduced ? 600 : sec(2.5));
+    const stage = $('.cake-stage');
+    section.style.setProperty('--lift', -Math.round(stage.offsetHeight * (innerHeight < 760 ? .57 : .5)) + 'px');
+    section.classList.add('wish-mode');
     wishCard.classList.add('show');
-    wishCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    petalShower(50);
-    await wait(reduced ? 300 : 2000);
+    petalShower(40);
+    await wait(sec(2));
     btnLetter.classList.add('show');
   }
-  // Beat 2: the letter
-  btnLetter.addEventListener('click', async () => {
-    if (!letter.hidden) { letter.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-    letter.hidden = false;
-    watchReveals(letter);
-    requestAnimationFrame(() => letter.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-    await wait(reduced ? 300 : 2600);
-    btnLast.classList.add('show');
-  });
-  // Beat 3: save the date
-  btnLast.addEventListener('click', () => {
-    if (invite.hidden) {
-      invite.hidden = false;
-      watchReveals(invite);
-    }
-    requestAnimationFrame(() => invite.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-  });
 
-  $$('.scene:not(.hero)').forEach(sc => watchReveals(sc));
+  // --- Beat 2 and 3 are their own pages (a short fade, then the page is swapped)
+  const veil = $('#veil');
+  async function swapTo(page) {
+    hideNext();
+    veil.classList.add('on');
+    await wait(reduced ? 80 : 560);
+    root.classList.add('free');                       // the letter is long: it scrolls by hand
+    document.body.classList.remove('page-letter', 'page-invite');
+    document.body.classList.add('page-' + page);
+    const pageEl = page === 'letter' ? letterEl : inviteEl;
+    pageEl.hidden = false;
+    window.scrollTo(0, 0);
+    await wait(140);
+    veil.classList.remove('on');
+    revealList($$('.reveal', pageEl), 450);
+    if (page === 'letter') setTimeout(() => btnLast.classList.add('show'), sec(2.6));
+  }
+  btnLetter.addEventListener('click', () => swapTo('letter'));
+  btnLast.addEventListener('click', () => swapTo('invite'));
 })();

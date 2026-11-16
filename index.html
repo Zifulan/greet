@@ -67,7 +67,7 @@
 <main id="main">
 
   <!-- ============ MIDNIGHT ============ -->
-  <section class="scene hero" data-time="night">
+  <section class="scene hero" data-time="night" data-stop="hero">
     <p class="kicker reveal">00:00 &middot; 9 December 2026</p>
     <button class="btn btn-light gate-btn" id="openBtn" type="button">Tap to open</button>
     <div class="hero-body">
@@ -76,11 +76,10 @@
       <span class="divider d2 reveal" aria-hidden="true"></span>
       <p class="hand hero-note reveal">and let's go back to where it all started</p>
     </div>
-    <p class="scroll-cue" aria-hidden="true">scroll</p>
-  </section>
+      </section>
 
   <!-- ============ CHAPTER 1: SD (morning) ============ -->
-  <section class="scene chapter" id="story" data-time="morning">
+  <section class="scene chapter" id="story" data-time="morning" data-stop="story">
     <div class="doodles reveal"><span class="doodle" style="--src:url(../img/art/doodle-backpack.svg)" aria-hidden="true"></span><span class="doodle" style="--src:url(../img/art/doodle-pencil.svg)" aria-hidden="true"></span><span class="doodle" style="--src:url(../img/art/doodle-tie.svg)" aria-hidden="true"></span></div>
     <p class="kicker reveal">Chapter one</p>
     <h2 class="display reveal">Where it all started</h2>
@@ -104,7 +103,7 @@
   </section>
 
   <!-- ============ CHAPTER 2: twelve years apart (afternoon) ============ -->
-  <section class="scene chapter years track" id="years" data-time="noon" data-time-mid="sunset" data-time-end="night" data-fade>
+  <section class="scene chapter years track" id="years" data-time="noon" data-time-mid="sunset" data-time-end="night" data-fade data-stop="years">
     <div class="pin"><div class="pin-body">
     <div class="doodles reveal"><span class="doodle" style="--src:url(../img/art/doodle-calendar.svg)" aria-hidden="true"></span></div>
     <p class="kicker reveal">Chapter two</p>
@@ -117,7 +116,7 @@
   </section>
 
   <!-- ============ the dream + she came looking (night) ============ -->
-  <section class="scene chapter dream" data-time="night">
+  <section class="scene chapter dream" data-time="night" data-stop="dream">
     <img class="haze" src="assets/img/art/dream-haze.webp" alt="" aria-hidden="true">
     <div class="doodles reveal"><span class="doodle" style="--src:url(../img/art/doodle-dream.svg)" aria-hidden="true"></span></div>
     <p class="kicker reveal">Late 2025</p>
@@ -144,22 +143,22 @@
   </section>
 
   <!-- ============ the confession (sunrise) ============ -->
-  <section class="scene chapter confess" data-time="sunrise">
+  <section class="scene chapter confess" data-time="sunrise" data-stop="confess">
     <div class="doodles reveal"><span class="doodle beat" style="--src:url(../img/art/doodle-heart.svg)" aria-hidden="true"></span></div>
     <p class="hand day-tag reveal">day one</p>
     <p class="kicker reveal">24 December 2025</p>
     <h2 class="display reveal">Out of nowhere,<br><em>you said it first</em></h2>
 
     <div class="chatlog">
-      <div class="bubble her no-time reveal" style="transition-delay:.2s">...its gonna sounds weird sih (i guess) haha</div>
-      <div class="bubble me no-time reveal" style="transition-delay:1.2s">ahh okayy, you've overtake my plan then lol</div>
-      <div class="bubble her no-time reveal" style="transition-delay:2.2s">no wayyy</div>
+      <div class="bubble her no-time reveal">...its gonna sounds weird sih (i guess) haha</div>
+      <div class="bubble me no-time reveal">ahh okayy, you've overtake my plan then lol</div>
+      <div class="bubble her no-time reveal">no wayyy</div>
     </div>
     <p class="hand reveal">I'd been planning to tell you too.<br>You were just braver.</p>
   </section>
 
   <!-- ============ CHAPTER: first date + girlfriend (morning) ============ -->
-  <section class="scene chapter firsts" data-time="morning">
+  <section class="scene chapter firsts" data-time="morning" data-stop="firsts">
     <p class="kicker reveal">Chapter three</p>
     <h2 class="display reveal">Then we finally <em>met</em></h2>
 
@@ -173,17 +172,21 @@
     </div>
     <p class="body reveal">The first time we saw each other since SD.<br>Sitting awkwardly in the park, watching people go by.<br>And lining up in the wrong HokBen queue.</p>
 
+  </section>
+
+  <!-- ============ 15 January: the chat (morning) ============ -->
+  <section class="scene chapter firsts-chat" data-time="morning" data-stop="firsts-chat">
     <div class="chatlog">
       <p class="chat-date reveal">15 January 2026 &middot; day 23</p>
-      <div class="bubble me reveal" style="transition-delay:.2s">I've told you my plan for the future (even though not all of it). Do you believe me and wanna be my partner from now on?<span class="time">04:10</span></div>
-      <div class="bubble her reveal" style="transition-delay:1.4s">cieee<span class="time">04:12</span></div>
-      <div class="bubble her reveal" style="transition-delay:2.4s">yesss<span class="time">04:14</span></div>
+      <div class="bubble me reveal">I've told you my plan for the future (even though not all of it). Do you believe me and wanna be my partner from now on?<span class="time">04:10</span></div>
+      <div class="bubble her reveal">cieee<span class="time">04:12</span></div>
+      <div class="bubble her reveal">yesss<span class="time">04:14</span></div>
     </div>
   </section>
 
   <!-- ============ CHAPTER 6: us (sunset) ============
        Tap-to-flip polaroids: put a note in .back -->
-  <section class="scene chapter" data-time="sunset">
+  <section class="scene chapter" data-time="sunset" data-stop="us">
     <p class="kicker reveal">Chapter four</p>
     <h2 class="display reveal">And then it was us</h2>
     <div class="pile">
@@ -225,7 +228,7 @@
   </section>
 
   <!-- ============ engagement: the sun sets, the moon rises (sticky sky track) ============ -->
-  <section class="scene chapter engaged track short" data-time="sunset" data-time-end="night">
+  <section class="scene chapter engaged track short" data-time="sunset" data-time-end="night" data-stop="engaged">
     <div class="pin"><div class="pin-body">
       <div class="engaged-line reveal">
         <span class="rings" aria-hidden="true"></span>
@@ -236,7 +239,7 @@
   </section>
 
   <!-- ============ CHAPTER 7: tonight ============ -->
-  <section class="scene chapter tonight" data-time="night">
+  <section class="scene chapter tonight" data-time="night" data-stop="tonight">
     <p class="kicker reveal">Tonight &middot; day 351</p>
     <h2 class="display reveal">It only ever took<br><em>one day</em></h2>
     <p class="body big reveal">One night, you dreamed about me.<br>One day, you found me.<br>One day, you said it first.<br>One day, I asked you to be mine.</p>
@@ -245,12 +248,14 @@
   </section>
 
   <!-- ============ CAKE ============ -->
-  <section class="scene cake-section" id="cake" data-time="night">
+  <section class="scene cake-section" id="cake" data-time="night" data-stop="cake">
+    <div class="cake-head-wrap"><div class="cake-head">
     <p class="kicker reveal">9 December 2025</p>
     <p class="body lastyear reveal">I didn't even say happy birthday.<br>I wasn't brave enough.</p>
     <p class="kicker reveal">9 December 2026</p>
     <h2 class="display reveal">So this year,<br><em>I made you a cake</em></h2>
     <p class="step-text reveal" id="stepText">The candles aren't lit yet. Grab the match first.</p>
+    </div></div>
 
     <div class="cake-stage">
       <div class="cake" id="cakeEl">
@@ -264,13 +269,15 @@
     </div>
 
     <!-- Beat 1: the wish -->
-    <div class="wish-card" id="wishCard" aria-live="polite">
+    <div class="wish-live" aria-live="polite">
+    <div class="wish-card" id="wishCard">
       <p class="wish-title">Happy Birthday, my love</p>
       <p>May Allah grant every wish you just made, one by one, each at the perfect time.</p>
       <p>Thank you for being you. This is your last birthday as my girlfriend, because in three days you'll be my wife.</p>
       <p class="wish-last">Happy birthday. See you on day 354.</p>
       <p class="wish-sign">Fatah</p>
       <button class="btn btn-wine cta" id="btnLetter" type="button">Read your letter</button>
+    </div>
     </div>
   </section>
 
@@ -281,7 +288,7 @@
       <p class="letter-to">Gege,</p>
       <p>Last year on this day, I couldn't even type "happy birthday". This year I made you a whole website. I guess that's what you do to me.</p>
       <p>Thank you for being the brave one first. For the dream, for that message, for "no wayyy", and for saying yes at four in the morning.</p>
-      <p>I know this year wasn't all sweet. We had our hard days. But every single time, we found our way back and chose each other again. And every hard day ended the same way: still us.</p>
+      <p>I know this year wasn't all sweet. We had our hard days. But every single time, we found our way back and chose each other again. We keep getting older and the nights keep changing, but they never changed us. Every hard day ended the same way: still us.</p>
       <p>Back in SD you were always in the top five, and I was always outside the top ten. We never even talked, and then twelve whole years went by. Funny how fast the night changes. One night, you dreamed about me, and now I get to stand next to you for the rest of my life.</p>
       <p>Happy 26th, my love. I love you.</p>
       <p class="letter-sign">Fatah</p>
@@ -308,6 +315,13 @@
   </section>
 
 </main>
+
+<!-- Continue: a thin line fills while the chapter holds, then it becomes a button -->
+<div class="next" id="next">
+  <span class="hold-line" aria-hidden="true"><i id="holdFill"></i></span>
+  <button class="next-btn" id="nextBtn" type="button">Continue</button>
+</div>
+<div class="veil" id="veil" aria-hidden="true"></div>
 
 <script src="assets/js/birthday.js"></script>
 </body>
