@@ -11,21 +11,24 @@
 
   /* =====================================================
      PACING  (edit the numbers here)
-     The page never scrolls by hand. Each chapter glides in, shows its
-     text in order, and then holds for about as long as a person needs to
-     read it: the script counts the words on screen, reads them at a
-     normal speed (each line only once it has faded in), adds a moment for
-     photos and a pause at the end. Then Continue appears. Change the copy
-     and the timing follows. Open the link with ?fast to skip the waiting
-     while testing (combine with ?preview before 9 Dec:  ?preview&fast).
+     The story plays by itself: each chapter glides in, shows its text in
+     order, and holds for about as long as a person needs to read it (the
+     script counts the words on screen, reads them at a normal speed, each
+     line only once it has faded in, adds a moment for photos and a pause),
+     then glides on. Change the copy and the timing follows. She can pause,
+     go back or forward at any time. Open the link with ?fast to skip the
+     waiting while testing (before 9 Dec:  ?preview&fast).
      ===================================================== */
   const READING = {
-    wordsPerSecond: 4.6,      // about 275 words a minute: brisk but natural for short lines. A slower reader just takes longer to press Continue
+    wordsPerSecond: 4.6,      // about 275 words a minute: brisk but natural for short lines. A slower reader can pause
     glance: .15,              // seconds to notice a new line before reading it
     photo: .8,                // seconds to take in a photo
     pause: .7,                // seconds to let it sink in after the last line
     min: 3.5,                 // no chapter holds for less than this
     extra: { confess: 1, tonight: 1, us: 4 },   // a little longer where she wants a beat (or to flip the photos)
+    interact: 6,              // seconds the page waits after she touches something (flipping a photo)
+    assistAfter: 6,           // seconds after she could have read the cake heading before the match lights the candles for her
+    letterWordsPerSecond: 4.2,// how fast the letter scrolls by itself (a little slower: it is the letter)
   };
   const SKY = { years: 6, engaged: 5 };    // seconds the sky takes to change in those two chapters
   const FAST = qs.has('fast');
@@ -323,17 +326,6 @@
     sc.prepend(deco);
   });
 
-  function playSky(sc, delayMs, durMs) {
-    const fx = tracks.get(sc);
-    if (!fx) return;
-    const t0 = performance.now(), d = delayMs * PACE, D = Math.max(300, durMs * PACE);
-    const step = now => {
-      const p = clamp((now - t0 - d) / D);
-      fx.apply(p);
-      if (p < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }
   tracks.forEach(fx => fx.apply(0));
 
   // browser bar colour follows the chapter on screen
@@ -389,28 +381,68 @@
     return t;
   }
 
-  const yearEl = $('#yearCounter'), yearFill = $('#yearFill');
-  function rollYears() {
-    const t0 = performance.now() + 1500 * PACE, dur = reduced ? 300 : Math.max(300, 2400 * PACE);
-    const step = now => {
-      const k = clamp((now - t0) / dur);
-      const e = 1 - Math.pow(1 - k, 3);
-      yearEl.textContent = String(2013 + Math.round(e * 12));
-      yearFill.style.transform = `scaleX(${e})`;
-      if (k < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }
-
   /* =====================================================
-     GUIDED FLOW: the page only moves when she presses Continue
+     AUTOPLAY
+     After "Tap to open" the story plays by itself: each chapter holds for its
+     reading time, then glides on. She never has to scroll or press anything.
+     She can take over at any moment: pause, step back or forward with the
+     buttons, or swipe. Taking over pauses autoplay until she presses play.
      ===================================================== */
   const STOPS = $$('[data-stop]');
   const hero = $('.hero');
   const openBtn = $('#openBtn');
-  const nextBox = $('#next'), nextBtn = $('#nextBtn'), holdFill = $('#holdFill');
-  let cur = -1, ready = false, gliding = false, anchorY = 0;
+  const player = $('#player'), plPrev = $('#plPrev'), plNext = $('#plNext'), plPause = $('#plPause');
+  const plCaption = $('#plCaption'), holdFill = $('#holdFill');
+  let cur = -1, entering = false, gliding = false, anchorY = 0;
+  let auto = true, inFinale = false, onLetter = false, swapping = false;
   const locked = () => root.classList.contains('guided') && !root.classList.contains('free');
+
+  // The story clock only runs while autoplay is on (and never jumps ahead after the tab was in the background).
+  let storyT = 0, lastFrame = 0, loopOn = false;
+  const tasks = new Map();                           // key -> fn(storyT, dt): true when finished
+  function loop(now) {
+    const dt = Math.min(100, now - lastFrame); lastFrame = now;
+    if (auto) storyT += dt;
+    for (const [k, fn] of [...tasks]) if (fn(storyT, auto ? dt : 0)) tasks.delete(k);
+    requestAnimationFrame(loop);
+  }
+  function startLoop() { if (loopOn) return; loopOn = true; lastFrame = performance.now(); requestAnimationFrame(loop); }
+
+  // the time left in the chapter (the thin line in the player)
+  const timer = { t0: 0, total: 0 };
+  function runTimer(totalMs, done) {
+    timer.t0 = storyT; timer.total = totalMs;
+    holdFill.style.transform = 'scaleX(0)';
+    tasks.set('timer', T => {
+      const k = clamp((T - timer.t0) / timer.total);
+      holdFill.style.transform = `scaleX(${k.toFixed(4)})`;
+      if (k >= 1) { done(); return true; }
+      return false;
+    });
+  }
+  function stopTimer() { tasks.delete('timer'); holdFill.style.transform = 'scaleX(0)'; }
+  function bump(ms) {                                 // she is doing something: never yank the page away right after
+    if (!tasks.has('timer')) return;
+    const left = timer.total - (storyT - timer.t0);
+    if (left < ms) timer.total += ms - left;
+  }
+
+  function playSky(sc, delayMs, durMs) {
+    const fx = tracks.get(sc);
+    if (!fx) return;
+    const t0 = storyT, d = delayMs * PACE, D = Math.max(300, durMs * PACE);
+    tasks.set('sky-' + sc.dataset.stop, T => { const p = clamp((T - t0 - d) / D); fx.apply(p); return p >= 1; });
+  }
+  const yearEl = $('#yearCounter'), yearFill = $('#yearFill');
+  function rollYears() {
+    const t0 = storyT + 1500 * PACE, dur = reduced ? 300 : Math.max(300, 2400 * PACE);
+    tasks.set('years-count', T => {
+      const k = clamp((T - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      yearEl.textContent = String(2013 + Math.round(e * 12));
+      yearFill.style.transform = `scaleX(${e})`;
+      return k >= 1;
+    });
+  }
 
   function glideTo(y, ms) {
     return new Promise(res => {
@@ -435,73 +467,111 @@
     return Math.round(clamp(top - 72, sTop, Math.max(sTop, sBottom - innerHeight)));
   }
 
-  function showHold(ms) {
-    ready = false;
-    nextBox.classList.remove('ready'); nextBox.classList.add('holding');
-    holdFill.style.transition = 'none';
-    holdFill.style.transform = 'scaleX(0)';
-    void holdFill.offsetWidth;
-    holdFill.style.transition = `transform ${ms}ms linear`;
-    holdFill.style.transform = 'scaleX(1)';
+  // leaving a chapter puts it back to its beginning, so coming back plays it again from the start
+  function resetStop(stop) {
+    const key = stop.dataset.stop;
+    if (key === 'cake') return;
+    $$('.reveal', stop).filter(e => stopOf(e) === stop).forEach(e => {
+      e.style.transition = 'none'; e.style.transitionDelay = '';
+      e.classList.remove('in');
+      void e.offsetWidth;
+      e.style.transition = '';
+    });
+    tasks.delete('sky-' + key);
+    const fx = tracks.get(stop);
+    if (fx) fx.apply(0);
+    if (key === 'years') { tasks.delete('years-count'); yearEl.textContent = '2013'; yearFill.style.transform = 'scaleX(0)'; }
   }
-  function showNext() { ready = true; nextBox.classList.remove('holding'); nextBox.classList.add('ready'); }
-  function hideNext() { ready = false; nextBox.classList.remove('holding', 'ready'); }
 
-  window.__guided = { holds: [] };      // (for testing) the hold worked out for each chapter, in seconds
+  window.__guided = { holds: [], get cur() { return cur; }, get auto() { return auto; }, get t() { return storyT; } };   // (for testing)
   async function enter(i) {
-    cur = i;
+    const prev = cur;
+    cur = i; entering = true;
     const stop = STOPS[i], key = stop.dataset.stop;
-    hideNext();
+    stopTimer(); tasks.delete('assist');
+    player.dataset.mode = key === 'cake' ? 'cake' : 'chapter';
+    plPrev.disabled = i === 0;
     anchorY = targetFor(stop);
-    glideTo(anchorY, GLIDE);
+    const glide = glideTo(anchorY, GLIDE);
     await wait(GLIDE * .65);            // the text starts fading in as the glide settles
     if (cur !== i) return;
     const { done, plan } = revealStop(stop, key === 'cake' ? 300 : 200);
     if (key === 'years') rollYears();
-    if (key === 'cake') return cakeArrive(done);
-    const read = readingEnd(plan);
-    let holdMs = Math.max(READING.min * 1000, read + (READING.pause + (READING.extra[key] || 0)) * 1000);
-    if (SKY[key]) {                     // the sky starts changing just as she finishes reading, then settles
-      const dur = SKY[key] * 1000;
-      const delay = key === 'years' ? Math.max(1000, read - dur * .3) : 1500;
-      playSky(stop, delay, dur);
-      holdMs = Math.max(holdMs, delay + dur + 1000);
+    if (key === 'cake') {
+      cakeArrive(done, plan);
+    } else {
+      const read = readingEnd(plan);
+      let holdMs = Math.max(READING.min * 1000, read + (READING.pause + (READING.extra[key] || 0)) * 1000);
+      if (SKY[key]) {                   // the sky starts changing just as she finishes reading, then settles
+        const dur = SKY[key] * 1000;
+        const delay = key === 'years' ? Math.max(1000, read - dur * .3) : 1500;
+        playSky(stop, delay, dur);
+        holdMs = Math.max(holdMs, delay + dur + 1000);
+      }
+      window.__guided.holds.push({ key, seconds: +(holdMs / 1000).toFixed(1), reading: +(read / 1000).toFixed(1) });
+      runTimer(Math.max(FAST ? 700 : 0, holdMs * PACE, done + 600 * PACE), () => go(1, false));
     }
-    window.__guided.holds.push({ key, seconds: +(holdMs / 1000).toFixed(1), reading: +(read / 1000).toFixed(1) });
-    const hold = Math.max(FAST ? 700 : 0, holdMs * PACE, done + 600 * PACE);
-    showHold(hold);
-    await wait(hold);
-    if (cur === i) showNext();
+    await glide;
+    entering = false;
+    if (prev >= 0 && prev !== i) resetStop(STOPS[prev]);
   }
-  function advance() {
-    if (!ready || cur >= STOPS.length - 1) return;
-    buzz(10);
-    enter(cur + 1);
-  }
-  nextBtn.addEventListener('click', advance);
 
-  // no hand scrolling: block touch, wheel and keys (except on the free-scrolling letter page)
+  // go to the next / previous chapter. A manual move (button or swipe) means she took over: autoplay pauses.
+  function go(delta, manual) {
+    if (entering || inFinale) return;
+    const j = cur + delta;
+    if (j < 0 || j >= STOPS.length) return;
+    if (manual) { buzz(10); setAuto(false); }
+    enter(j);
+  }
+
+  let captionTimer = 0, letterSync = () => {};
+  function caption(text, ms = 1800) {
+    plCaption.textContent = text;
+    plCaption.classList.add('show');
+    clearTimeout(captionTimer);
+    captionTimer = setTimeout(() => plCaption.classList.remove('show'), ms);
+  }
+  function setAuto(on) {
+    if (auto === on) return;
+    auto = on;
+    player.classList.toggle('paused', !on);
+    plPause.setAttribute('aria-label', on ? 'Pause' : 'Play');
+    caption(on ? 'Playing' : 'Paused', 1500);
+    if (on && onLetter) letterSync();
+  }
+  plPause.addEventListener('click', () => setAuto(!auto));
+  plNext.addEventListener('click', () => go(1, true));
+  plPrev.addEventListener('click', () => go(-1, true));
+
+  // no hand scrolling in the story: block touch, wheel and keys (the letter page scrolls freely)
   addEventListener('touchmove', e => { if (locked()) e.preventDefault(); }, { passive: false });
-  addEventListener('wheel', e => { if (locked()) e.preventDefault(); }, { passive: false });
+  addEventListener('wheel', e => { if (locked()) e.preventDefault(); else if (onLetter) setAuto(false); }, { passive: false });
   addEventListener('keydown', e => {
+    const k = e.key;
+    if (onLetter) { if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(k)) setAuto(false); return; }
     if (!locked()) return;
-    if (![' ', 'ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End'].includes(e.key)) return;
+    if (!['ArrowRight', 'ArrowDown', 'PageDown', 'ArrowLeft', 'ArrowUp', 'PageUp', ' '].includes(k)) return;
     if (e.target.closest?.('button, a, [role="button"]')) return;
     e.preventDefault();
-    if (e.key === ' ' || e.key === 'ArrowDown' || e.key === 'PageDown') advance();
+    if (k === ' ') setAuto(!auto);
+    else go(['ArrowRight', 'ArrowDown', 'PageDown'].includes(k) ? 1 : -1, true);
   });
   // if anything nudges the page (a focus jump, say), put it back
   addEventListener('scroll', () => {
     if (locked() && !gliding && cur >= 0 && Math.abs(scrollY - anchorY) > 3) window.scrollTo(0, anchorY);
   }, { passive: true });
-  // once Continue is showing, swiping up works too
+  // swipe up = next, swipe down = back (a manual move, so autoplay pauses); touching the letter takes over its auto-scroll
   let sx = 0, sy = 0, sTarget = null;
-  addEventListener('pointerdown', e => { sx = e.clientX; sy = e.clientY; sTarget = e.target; }, { passive: true });
+  addEventListener('pointerdown', e => {
+    sx = e.clientX; sy = e.clientY; sTarget = e.target;
+    if (onLetter && !e.target.closest?.('button, a, .player')) setAuto(false);
+  }, { passive: true });
   addEventListener('pointerup', e => {
-    if (!ready || !locked() || !sTarget?.closest) return;
-    if (sTarget.closest('#match, .candle, button, a')) return;
+    if (!locked() || !sTarget?.closest) return;
+    if (sTarget.closest('#match, .candle, button, a, .player')) return;
     const dy = e.clientY - sy, dx = e.clientX - sx;
-    if (dy < -56 && Math.abs(dx) < 90) advance();
+    if (Math.abs(dx) < 90 && Math.abs(dy) > 56) go(dy < 0 ? 1 : -1, true);
   }, { passive: true });
 
   /* =====================================================
@@ -526,7 +596,10 @@
     root.classList.remove('gated');
     openBtn.classList.add('gone');
     petalShower(70);
+    startLoop();
+    player.classList.add('on');
     enter(0);
+    setTimeout(() => caption('Pause or skip any time', 3400), 2600 * PACE);
   });
 
   /* =====================================================
@@ -538,6 +611,7 @@
       const on = card.classList.toggle('flipped');
       card.setAttribute('aria-pressed', String(on));
       pile.classList.add('touched'); // hides the "tap photo" hint
+      bump(READING.interact * 1000 * PACE);          // she is reading a note: give her time before the page moves on
       buzz(10);
     };
     card.addEventListener('click', flip);
@@ -548,6 +622,7 @@
 
   /* =====================================================
      CAKE: strike the match, light the 2 and the 6 (drag, or tap each).
+     If she doesn't, the match lights them for her after a while.
      The candles stay lit. Then three beats: wish, letter, save the date.
      ===================================================== */
   const section = $('#cake');
@@ -559,7 +634,7 @@
   const btnLetter = $('#btnLetter'), btnLast = $('#btnLast');
   const letterEl = $('#letter'), inviteEl = $('#invite');
   const LIGHT_RADIUS = 30; // px between match head and wick
-  let armed = false, matchLit = false, allLit = false, drag = null, hopping = false;
+  let armed = false, matchLit = false, allLit = false, drag = null, hopping = false, assistPoke = () => {};
   const off = { x: 0, y: 0 };
 
   function say(text) {
@@ -571,10 +646,30 @@
   const wickPos = c => center(c.getBoundingClientRect());
   const place = () => { match.style.transform = `translate3d(${off.x.toFixed(1)}px, ${off.y.toFixed(1)}px, 0)`; };
 
-  function cakeArrive(revealMs) {
+  function cakeArrive(revealMs, plan) {
     setTimeout(() => { armed = true; match.classList.add('armed'); }, revealMs * .6);
     // if the song already ran out and is looping softly, bring the last chorus back for the cake
     if (looped && songOk) { song.currentTime = 173; fadeTo(.75, 3000); }
+    // hands-free: when she has had time to read the heading and hasn't touched anything, the match lights the candles
+    const wait4 = (readingEnd(plan) + READING.assistAfter * 1000) * PACE;
+    let idle0 = storyT;
+    assistPoke = () => { idle0 = storyT; };
+    tasks.set('assist', T => {
+      if (allLit) return true;
+      if (!armed || drag || hopping) { idle0 = T; return false; }
+      if (T - idle0 >= wait4) { autoLight(); return true; }
+      return false;
+    });
+  }
+  async function autoLight() {
+    if (allLit) return;
+    say('Let me light them for you.');
+    await wait(reduced ? 100 : 900);
+    for (const c of [candles[1], candles[0]]) {
+      if (allLit) return;
+      if (!c.classList.contains('lit')) await hopTo(c);
+      await wait(reduced ? 60 : 350);
+    }
   }
 
   function ignite() {
@@ -608,6 +703,7 @@
 
   // --- drag (touch-action: none on the match, so it never fights anything)
   match.addEventListener('pointerdown', e => {
+    assistPoke();
     if (!armed || allLit || hopping) return;
     e.preventDefault();
     try { match.setPointerCapture(e.pointerId); } catch {}
@@ -627,6 +723,7 @@
     try { match.releasePointerCapture(e.pointerId); } catch {}
     drag = null;
     match.classList.remove('dragging');
+    assistPoke();
   };
   match.addEventListener('pointerup', endDrag);
   match.addEventListener('pointercancel', endDrag);
@@ -648,9 +745,9 @@
     hopping = false;
   }
   candles.forEach(c => {
-    c.addEventListener('click', () => hopTo(c));
+    c.addEventListener('click', () => { assistPoke(); hopTo(c); });
     c.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); hopTo(c); }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); assistPoke(); hopTo(c); }
     });
   });
 
@@ -665,10 +762,12 @@
   // --- Beat 1: the wish rises over the lower cake while the candles keep glowing
   async function finale() {
     if (allLit) return;
-    allLit = true;
+    allLit = true; inFinale = true;
     drag = null;
+    tasks.delete('assist');
     match.classList.remove('dragging', 'burning');
     match.classList.add('gone');
+    player.dataset.mode = 'wish';
     say('Close your eyes and make a wish...');
     await wait(reduced ? 600 : sec(2.5));
     const stage = $('.cake-stage');
@@ -676,6 +775,9 @@
     section.classList.add('wish-mode');
     wishCard.classList.add('show');
     petalShower(40);
+    // she has time to read the wish, then the letter opens by itself
+    const words = wordsOf(wishCard) - wordsOf(btnLetter);
+    runTimer(Math.max(FAST ? 800 : 0, (words / READING.wordsPerSecond * 1000 + READING.pause * 1000 + 1500) * PACE), () => swapTo('letter'));
     await wait(sec(2));
     btnLetter.classList.add('show');
   }
@@ -683,20 +785,54 @@
   // --- Beat 2 and 3 are their own pages (a short fade, then the page is swapped)
   const veil = $('#veil');
   async function swapTo(page) {
-    hideNext();
+    if (swapping) return;
+    swapping = true;
+    stopTimer();
     veil.classList.add('on');
     await wait(reduced ? 80 : 560);
-    root.classList.add('free');                       // the letter is long: it scrolls by hand
+    root.classList.add('free');                       // the letter is long, so it scrolls
     document.body.classList.remove('page-letter', 'page-invite');
     document.body.classList.add('page-' + page);
     const pageEl = page === 'letter' ? letterEl : inviteEl;
     pageEl.hidden = false;
     window.scrollTo(0, 0);
+    onLetter = page === 'letter';
+    player.dataset.mode = page === 'letter' ? 'letter' : 'end';
     await wait(140);
     veil.classList.remove('on');
     revealList($$('.reveal', pageEl), 450);
-    if (page === 'letter') setTimeout(() => btnLast.classList.add('show'), sec(2.6));
+    if (page === 'letter') {
+      startLetterRead();
+      setTimeout(() => btnLast.classList.add('show'), sec(2.6));
+    }
+    swapping = false;
   }
   btnLetter.addEventListener('click', () => swapTo('letter'));
   btnLast.addEventListener('click', () => swapTo('invite'));
+
+  // The letter scrolls by itself at reading pace, keeping the line being read about halfway down the screen.
+  // Touching it (or pressing pause) hands control back to her; play picks up from wherever she scrolled to.
+  function startLetterRead() {
+    const paper = $('.letter', letterEl);
+    const r = paper.getBoundingClientRect();
+    const top = r.top + scrollY, bottom = r.bottom + scrollY;
+    const ms = Math.max(8000, wordsOf(paper) / READING.letterWordsPerSecond * 1000) * PACE;
+    const speed = (bottom - top) / ms;                // px of paper per ms of story time
+    let cursor = top + 40, lastT = storyT, endedAt = null;
+    letterSync = () => { cursor = clamp(scrollY + innerHeight * .55, top, bottom); endedAt = null; lastT = storyT; };
+    tasks.set('letter', T => {
+      if (!onLetter) return true;
+      const dt = T - lastT; lastT = T;
+      if (dt <= 0) return false;
+      cursor = Math.min(bottom, cursor + speed * dt);
+      const maxY = document.documentElement.scrollHeight - innerHeight;
+      const want = clamp(cursor - innerHeight * .55, 0, maxY);
+      window.scrollTo(0, scrollY + (want - scrollY) * Math.min(1, dt / 220));
+      if (cursor >= bottom) {                         // she has read it all: a beat, then the last page
+        if (endedAt === null) endedAt = T;
+        if (T - endedAt >= 2600 * PACE) { onLetter = false; swapTo('invite'); return true; }
+      }
+      return false;
+    });
+  }
 })();

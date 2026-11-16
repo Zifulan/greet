@@ -316,10 +316,13 @@
 
 </main>
 
-<!-- Continue: a thin line fills while the chapter holds, then it becomes a button -->
-<div class="next" id="next">
-  <span class="hold-line" aria-hidden="true"><i id="holdFill"></i></span>
-  <button class="next-btn" id="nextBtn" type="button">Continue</button>
+<!-- Autoplay controls: she never has to press anything, but she can take over any time -->
+<div class="player" id="player" data-mode="chapter" role="group" aria-label="Playback controls">
+  <span class="pl-caption" id="plCaption" aria-live="polite"></span>
+  <button class="pl-btn" id="plPrev" type="button" aria-label="Previous chapter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <button class="pl-btn pl-pause" id="plPause" type="button" aria-label="Pause"><svg class="i-pause" viewBox="0 0 24 24"><path d="M7 4.5h3.6v15H7zM13.4 4.5H17v15h-3.6z"/></svg><svg class="i-play" viewBox="0 0 24 24"><path d="M8 4.8v14.4L19.5 12z"/></svg></button>
+  <button class="pl-btn" id="plNext" type="button" aria-label="Next chapter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+  <span class="pl-track" aria-hidden="true"><i id="holdFill"></i></span>
 </div>
 <div class="veil" id="veil" aria-hidden="true"></div>
 
