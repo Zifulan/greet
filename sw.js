@@ -1,10 +1,11 @@
 // Offline support so the page opens even without internet at midnight.
 // Bump VERSION whenever files change (e.g. after adding photos).
-const VERSION = 'v36';
+const VERSION = 'v37';
 const CACHE = 'gege-' + VERSION;
 const CORE = [
   './',
   './index.html',
+  './assets/data/energy.json',
   './manifest.webmanifest',
   './assets/css/birthday.css',
   './assets/js/birthday.js',

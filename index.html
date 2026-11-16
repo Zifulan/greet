@@ -34,6 +34,7 @@
 <!-- Each section paints its own sky (see birthday.js); this is just the dark base -->
 <div class="sky" id="sky" aria-hidden="true"></div>
 <canvas id="petals" aria-hidden="true"></canvas>
+<div class="glow" id="glow" aria-hidden="true"></div>
 
 <audio id="song" src="assets/audio/night-changes.mp3" preload="auto"></audio>
 <button class="music" id="musicBtn" type="button" aria-label="Mute music" aria-pressed="false" hidden>
@@ -100,12 +101,7 @@
     </div>
 
     <p class="body reveal">Same school. Same white uniform. Same little tie.<br>Classmates at SDN Joglo 01 Pagi who barely ever talked.</p>
-  </section>
-
-  <section class="scene chapter" data-time="morning" data-stop="story2">
-    <p class="body big reveal">Half the boys in our class liked you.</p>
-    <p class="body big reveal">I wasn't even in the running.</p>
-    <p class="body reveal">I was the kid who couldn't sit still, and I only hung out with the boys.</p>
+    <p class="body hit reveal">Half the boys in our class liked you. I wasn't even in the running.</p>
   </section>
 
   <!-- ============ CHAPTER 2: twelve years apart (afternoon) ============ -->
@@ -127,11 +123,8 @@
     <div class="doodles reveal"><span class="doodle" style="--src:url(../img/art/doodle-dream.svg)" aria-hidden="true"></span></div>
     <p class="kicker reveal">Late 2025</p>
     <h2 class="display reveal">Then one night,<br><em>you dreamed about me</em></h2>
-    <p class="body reveal">It started with an old SD photo on your Instagram feed.<br>That night, you dreamed of an SD reunion,<br>and out of nowhere, you were standing right behind me.<br>You woke up remembering my name.</p>
-  </section>
-
-  <section class="scene chapter dream" data-time="night" data-stop="dream2">
-    <p class="body reveal">You wondered: what moment did we ever even have for me to show up?<br>I still don't know. I'm just glad I did.</p>
+    <p class="body reveal">It started with an old SD photo on your feed.<br>That night, you dreamed of an SD reunion,<br>and out of nowhere, you were standing right behind me.</p>
+    <p class="hand hit reveal">"what moment did we even have for him to show up?"</p>
     <p class="hand reveal">so you came looking</p>
 
     <div class="notifs small">
@@ -157,7 +150,7 @@
     <div class="doodles reveal"><span class="doodle beat" style="--src:url(../img/art/doodle-heart.svg)" aria-hidden="true"></span></div>
     <p class="hand day-tag reveal">day one</p>
     <p class="kicker reveal">24 December 2025</p>
-    <h2 class="display reveal">Out of nowhere,<br><em>you said it first</em></h2>
+    <h2 class="display hit reveal">Out of nowhere,<br><em>you said it first</em></h2>
 
     <div class="chatlog">
       <div class="bubble her no-time reveal">...its gonna sounds weird sih (i guess) haha</div>
@@ -180,13 +173,8 @@
       </div>
       <div class="ticket-stub" aria-hidden="true"><span>No. 001</span></div>
     </div>
-    <p class="body reveal">The first time we saw each other since SD.<br>Sitting awkwardly in the park, watching people go by.<br>And lining up in the wrong HokBen queue.</p>
+    <p class="body reveal">The first time we saw each other since SD.<br>Sitting awkwardly in the park, watching people go by.<br>And lining up in the wrong HokBen queue.<br>I asked you to lead the way to your home. You were so nervous.</p>
 
-  </section>
-
-  <section class="scene chapter firsts-meet" data-time="morning" data-stop="firsts-meet">
-    <p class="kicker reveal">10 January 2026</p>
-    <p class="body big reveal">That day, I went to meet your parents first. You picked me up, I asked you to lead the way to your home, and you got so nervous.<br>We were both so nervous that day. We still bring up the queue.</p>
   </section>
 
   <!-- ============ 15 January: the chat (morning) ============ -->
@@ -199,17 +187,12 @@
     </div>
   </section>
 
-  <section class="scene chapter" data-time="sunset" data-stop="us-note">
-    <p class="body big reveal">Not every day with you needed a plan.</p>
-    <p class="body big reveal">Most of my favorite ones didn't.</p>
-    <p class="body reveal">Your laugh is the first thing I'd pick out of any crowd.</p>
-  </section>
-
   <!-- ============ CHAPTER 6: us (sunset) ============
        Tap-to-flip polaroids: put a note in .back -->
   <section class="scene chapter" data-time="sunset" data-stop="us">
     <p class="kicker reveal">Chapter four</p>
     <h2 class="display reveal">And then it was us</h2>
+    <p class="hand reveal">Your laugh is the first thing I'd pick out of any crowd.</p>
     <div class="pile">
       <figure class="polaroid flip reveal" style="--r:-4deg" role="button" tabindex="0" aria-label="Photo: us in a round mirror. Tap to flip."><div class="pf">
         <div class="face front">
@@ -255,7 +238,6 @@
         <span class="rings" aria-hidden="true"></span>
         <p class="kicker">30 May 2026 &middot; day 158</p>
         <p class="body big">And then, we got engaged.</p>
-        <p class="body">I came to your house with my family, Indonesian style. We took the matching photos in your living room, and both our families heard you say yes.</p>
       </div>
     </div></div>
   </section>
@@ -263,10 +245,10 @@
   <!-- ============ CHAPTER 7: tonight ============ -->
   <section class="scene chapter tonight" data-time="night" data-stop="tonight">
     <p class="kicker reveal">Tonight &middot; day 351</p>
-    <h2 class="display reveal">It only ever took<br><em>one day</em></h2>
+    <h2 class="display hit reveal">It only ever took<br><em>one day</em></h2>
     <p class="body big reveal">One night, you dreamed about me.<br>One day, you found me.<br>One day, you said it first.<br>One day, I asked you to be mine.</p>
     <span class="divider d1 reveal" aria-hidden="true"></span>
-    <p class="body reveal">And in three days, on day 354,<br>you become my wife.</p>
+    <p class="body big hit reveal">And in three days, on day 354,<br>you become my wife.</p>
   </section>
 
   <!-- ============ CAKE ============ -->
@@ -295,7 +277,6 @@
     <div class="wish-card" id="wishCard">
       <p class="wish-title">Happy Birthday, my love</p>
       <p>May Allah grant every wish you just made, one by one, each at the perfect time.</p>
-      <p>I hope this year gives you your sparks back. We've both had hard days, and you've had more than your share, but you deserve to feel light again.</p>
       <p>Thank you for being you. This is your last birthday as my girlfriend, because in three days you'll be my wife.</p>
       <p class="wish-last">Happy birthday. See you on day 354.</p>
       <p class="wish-sign">Fatah</p>

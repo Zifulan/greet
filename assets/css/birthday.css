@@ -708,3 +708,32 @@ html.guided .pile { grid-template-columns: repeat(2, min(39vw, 185px)); gap: 1re
 .wish-card { font-size: clamp(.78rem, 2.3svh, 1.04rem); }
 
 .confess .day-tag { font-size: 1.6rem; }
+
+/* copy that grew: tighten the busiest chapters on shorter phones so nothing needs scrolling */
+@media (max-height: 760px) {
+  html.guided #story .pair .polaroid { width: min(32vw, 128px); }
+  html.guided #story .pair { margin-top: .6rem; }
+  html.guided .dream .doodles { display: none; }
+  html.guided .dream .body { font-size: .95rem; line-height: 1.42; margin-block: .4rem; }
+  html.guided .dream .hand { margin-block: .3rem; }
+  html.guided .dream .notifs { gap: .45rem; margin-top: .6rem; }
+  html.guided .dream .notif { padding: .5rem .75rem; }
+  html.guided [data-stop="us"] .pile { gap: .6rem 4vw; margin-top: .6rem; grid-template-columns: repeat(2, min(34vw, 150px)); }
+  html.guided [data-stop="us"] .hand { margin-block: .2rem; }
+}
+@media (max-height: 660px) {
+  html.guided #story .pair .polaroid { width: min(27vw, 104px); }
+  html.guided [data-stop="us"] .pile { grid-template-columns: repeat(2, min(29vw, 124px)); gap: .4rem 4vw; }
+}
+
+/* ---------- drama: the page breathes with the song, and a few key lines land slowly ---------- */
+.glow {
+  position: fixed; inset: 0; z-index: 30; pointer-events: none; opacity: 0;
+  background: radial-gradient(120% 70% at 50% 108%, rgba(255,190,120,.55), rgba(180,40,60,.22) 45%, transparent 72%);
+}
+.glow.hit { animation: glowHit 1.6s var(--ease); }
+@keyframes glowHit { 0% { opacity: 0; } 18% { opacity: .85; } 100% { opacity: 0; } }
+.reveal.hit { transition: opacity 1.8s var(--ease), transform 1.8s var(--ease), filter 1.8s var(--ease); filter: blur(7px); transform: scale(1.06); }
+.reveal.hit.in { filter: none; transform: none; }
+.display.hit.in em, .big.hit.in { text-shadow: 0 0 22px rgba(255,200,140,.55); }
+@media (prefers-reduced-motion: reduce) { .glow { display: none; } .reveal.hit { filter: none; transform: none; } }

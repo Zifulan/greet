@@ -191,6 +191,36 @@
     };
     requestAnimationFrame(step);
   }
+  /* ---- the page breathes with the song: a warm glow rises with the loudness (quiet verses barely, choruses fully),
+          and each time a chorus kicks in a shower of petals is let loose. The loudness curve was measured from the mp3. */
+  const glow = $('#glow');
+  let energy = null, glowV = 0, lastBurst = -99, fxOn = false;
+  fetch('assets/data/energy.json').then(r => r.json()).then(d => { energy = d; }).catch(() => {});
+  function flash(strength = 1) {            // a key line lands
+    if (reduced) return;
+    glow.classList.remove('hit'); void glow.offsetWidth; glow.classList.add('hit');
+    petalShower(Math.round(16 * strength));
+    buzz(12);
+  }
+  function startMusicFx() {
+    if (fxOn || reduced) return;
+    fxOn = true;
+    let prevE = 0;
+    const frame = () => {
+      requestAnimationFrame(frame);
+      if (!energy || song.paused || glow.classList.contains('hit')) return;
+      const t = song.currentTime, e = energy.e[Math.min(energy.e.length - 1, Math.floor(t / energy.hop))] || 0;
+      glowV += (e - glowV) * .06;
+      glow.style.opacity = (glowV * glowV * .5).toFixed(3);
+      if (prevE < .55 && e >= .7 && t - lastBurst > 14) {     // a chorus kicks in
+        lastBurst = t;
+        petalShower(t > 170 ? 70 : 34);
+        buzz(18);
+      }
+      prevE = e;
+    };
+    requestAnimationFrame(frame);
+  }
   async function playSong() {
     if (!songOk || !song.paused) return;
     try {
@@ -198,6 +228,7 @@
       await song.play();
       fadeTo(1, 1500);
       musicBtn.hidden = false;
+      startMusicFx();
     } catch { /* no file, or blocked: the page works without it */ }
   }
   // tail: ease down over the last seconds so the loop doesn't start with a jump
@@ -358,6 +389,7 @@
       e.style.transitionDelay = Math.round(t * PACE) + 'ms';
       e.classList.add('in');
       plan.push({ el: e, at: t });                // unscaled ms after the chapter starts to appear
+      if (e.classList.contains('hit')) setTimeout(() => flash(1.4), Math.round((t + 500) * PACE));
       last = t; t += STEP(e);
     }
     return { done: Math.round((last + 900) * PACE), plan };   // ms until the last piece has finished fading in
