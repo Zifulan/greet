@@ -65,9 +65,12 @@ button { font: inherit; }
   background-size: 310px 290px; animation-delay: -1.7s;
 }
 @keyframes twinkle { from { opacity: .3; } to { opacity: 1; } }
+.starfield { will-change: transform, opacity; }
 .spark { position: absolute; width: 22px; height: 22px; animation: spark 2.6s ease-in-out infinite alternate; }
+.cloudset { position: absolute; inset: 0; will-change: transform, opacity; }
+.sky-l { position: absolute; inset: 0; will-change: opacity; }
 @keyframes spark { from { transform: scale(.7); } to { transform: scale(1.05); } }
-.orb { position: absolute; top: 4.5%; right: 6%; width: 60px; height: 60px; }
+.orb { position: absolute; top: 4.5%; right: 6%; width: 60px; height: 60px; will-change: transform, opacity; }
 .orb.sun { width: 86px; height: 86px; top: 3%; right: 3%; }
 .cloud { position: absolute; width: min(150vw, 1000px); max-width: none; opacity: .42; animation: drift 70s ease-in-out infinite alternate; }
 .cloud.c1 { top: max(20vh, 22%); left: -45%; }
@@ -152,7 +155,8 @@ button { font: inherit; }
 .bars i:nth-child(1) { height: 40%; }
 .bars i:nth-child(2) { height: 100%; animation-delay: -.3s; }
 .bars i:nth-child(3) { height: 65%; animation-delay: -.6s; }
-.music.paused .bars i { animation: none; height: 30%; }
+.music.muted .bars i { animation: none; height: 30%; opacity: .55; }
+.music.muted::after { content: ""; position: absolute; width: 26px; height: 2px; background: var(--cream); rotate: -45deg; border-radius: 2px; }
 @keyframes eq { from { transform: scaleY(.35); } to { transform: scaleY(1); } }
 
 /* ---------- polaroids ---------- */
@@ -185,8 +189,6 @@ button { font: inherit; }
 .strip .polaroid:nth-child(2) { margin-top: 1.8rem; }
 .strip .face { padding: 7px 7px 0; }
 .strip .face figcaption { font-size: 1.1rem; }
-.pile { display: grid; grid-template-columns: repeat(2, auto); justify-content: center; gap: 1rem 4vw; margin-top: 1.6rem; }
-.pile .polaroid:nth-child(even) { margin-top: 1.6rem; }
 
 /* ---------- doodles & dividers (designer line art, tinted to the sky) ---------- */
 .doodles { display: flex; justify-content: center; gap: 1.1rem; margin-bottom: 1rem; }
@@ -355,30 +357,6 @@ button { font: inherit; }
   50%  { transform: translateX(-50%) scale(.92, 1.08) rotate(2deg); }
   100% { transform: translateX(-50%) scale(1.04, .95) rotate(-1deg); }
 }
-.smoke { position: absolute; left: 50%; top: -6px; width: 7px; height: 7px; border-radius: 50%; background: rgba(220,205,190,.45); translate: -50% 0; opacity: 0; pointer-events: none; }
-.candle.out .smoke { animation: smoke 1.8s ease-out forwards; }
-@keyframes smoke { 0% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: translate(10px, -64px) scale(4.5); } }
-
-/* painted matchstick */
-.match {
-  position: absolute; left: 104%; top: 40px; z-index: 5; width: 9px;
-  transform-origin: 50% 100%; rotate: 25deg; opacity: 0; pointer-events: none; transition: opacity .3s;
-}
-.match img { width: 100%; height: auto; display: block; }
-.match-fire {
-  position: absolute; left: 50%; top: -24px; width: 14px; height: 26px; translate: -50% 0;
-  background: radial-gradient(ellipse at 50% 72%, #fffbe6 0 18%, #ffd27a 42%, #ff9442 72%, transparent 74%);
-  border-radius: 50% 50% 45% 45% / 62% 62% 38% 38%;
-  filter: drop-shadow(0 0 8px rgba(255,190,90,.95));
-  opacity: 0; transform: scale(.3); transition: opacity .2s, transform .3s;
-}
-.match.show { opacity: 1; }
-.match.burning .match-fire { opacity: 1; transform: scale(1); animation: flicker2 .5s ease-in-out infinite alternate; }
-@keyframes flicker2 { from { transform: scale(1) rotate(-3deg); } to { transform: scale(.9, 1.1) rotate(3deg); } }
-
-.cake-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: 2rem; min-height: 50px; }
-.matchbox { display: inline-block; width: 22px; height: 15px; border-radius: 2px; background: linear-gradient(90deg, var(--burgundy) 0 30%, var(--brown) 30% 36%, var(--burgundy) 36%); }
-
 .wish-card {
   position: relative; width: min(440px, 100%); margin: 2.5rem auto 0;
   padding: 2.4rem 1.75rem 2rem; border-radius: 4px;
@@ -471,7 +449,7 @@ button { font: inherit; }
 
 @media (prefers-reduced-motion: reduce) {
   .reveal, .polaroid.reveal { transition: opacity .4s; filter: none; }
-  .scroll-cue, .stars i, .bars i { animation: none; }
+  .scroll-cue, .bars i, .gate-btn::after, .match-stick, .cloud { animation: none; }
   .candle.lit .flame { animation: none; }
 }
 
@@ -485,28 +463,12 @@ button { font: inherit; }
 .bubble.her.no-time { font-family: var(--display); font-size: 1rem; padding-top: .55rem; }
 .confess .chatlog { margin-top: 1.2rem; }
 .confess .hand { margin-top: 1.4rem; font-size: 1.45rem; }
-.engaged-line { margin-top: 2.6rem; }
+.engaged-line { margin: 0; }
 .engaged-line .kicker { margin-bottom: .3rem; }
 .engaged-line .body.big { margin-top: 0; }
 .cake-section .lastyear { margin: 0 auto 1.6rem; font-style: italic; }
 
-/* photobooth strip in the "us" pile */
-.booth { position: relative; margin: 0; width: min(32vw, 150px); rotate: var(--r, 0deg); justify-self: center; }
-.booth.reveal { transform: translateY(30px) scale(.96); }
-.booth.reveal.in { transform: none; }
-.booth img { width: 100%; height: auto; border-radius: 3px; box-shadow: 0 14px 30px rgba(20,6,8,.35), 0 2px 4px rgba(20,6,8,.2); }
-.booth .tape { top: -10px; width: 74px; height: 20px; }
-.pile { align-items: start; }
-
-/* one breath: flames lean before going out */
-.candle.lit.gust .flame { animation: lean .5s ease-in forwards; }
-@keyframes lean {
-  0%   { transform: translateX(-50%) rotate(0) scale(1); }
-  100% { transform: translateX(-80%) rotate(-32deg) scale(.8, 1.2); opacity: .75; }
-}
-
 /* wish card buttons */
-.wish-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem; }
 .btn-wine { color: var(--cream); background: var(--burgundy); box-shadow: 0 8px 20px rgba(128,0,32,.3); }
 
 /* the letter */
@@ -525,3 +487,122 @@ button { font: inherit; }
 .letter .letter-to { font-size: 1.7rem; color: var(--burgundy); }
 .letter .letter-sign { margin: 0; text-align: right; font-size: 1.9rem; color: var(--green); }
 .letter .note-tape { top: -13px; }
+
+/* =========================================================
+   TAP-TO-OPEN GATE (hero)
+   The page can't scroll, and the song can't start, until she taps.
+   ========================================================= */
+html.gated, html.gated body { overflow: hidden; height: 100vh; height: 100dvh; }
+.hero-body { display: flex; flex-direction: column; align-items: center; }
+.gate-btn {
+  position: absolute; left: 50%; top: 56%; z-index: 3; translate: -50% -50%;
+  min-width: 190px; letter-spacing: .04em;
+  opacity: 0; transition: opacity .9s var(--ease) .5s, transform .15s var(--ease);
+}
+.gate-btn.ready { opacity: 1; }
+.gate-btn::after { /* soft pulse so it reads as "press me" */
+  content: ""; position: absolute; inset: -7px; border-radius: 999px;
+  border: 1px solid rgba(245,234,216,.55); animation: pulse 2.2s var(--ease) infinite;
+}
+@keyframes pulse { 0% { transform: scale(.94); opacity: .9; } 100% { transform: scale(1.14); opacity: 0; } }
+.gate-btn.gone { opacity: 0; pointer-events: none; transition: opacity .45s var(--ease); }
+html.gated .scroll-cue { opacity: 0; animation: none; }
+.scroll-cue { transition: opacity 1s var(--ease) 1.6s; }
+
+/* =========================================================
+   STICKY SKY TRACKS
+   A taller section whose content sticks while the sky changes behind it.
+   svh (not dvh) is used for scroll heights on purpose: it does not change
+   when the browser's toolbar slides away, so nothing jumps mid-scroll.
+   ========================================================= */
+.scene.track { display: block; padding: 0; min-height: 150vh; min-height: 150svh; }
+.scene.track.short { min-height: 135vh; min-height: 135svh; }
+.pin {
+  position: sticky; top: 0; height: 100vh; height: 100svh; isolation: isolate; overflow: hidden;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: calc(3.5rem + env(safe-area-inset-top)) 1.25rem 3rem; text-align: center;
+}
+.pin-body { display: flex; flex-direction: column; align-items: center; width: 100%; will-change: opacity; }
+
+/* =========================================================
+   CHAPTER FOUR: four flip cards, same size, same grid
+   ========================================================= */
+.pile {
+  display: grid; grid-template-columns: repeat(2, min(42vw, 190px)); justify-content: center;
+  gap: 1.5rem 4vw; margin-top: 1.8rem;
+}
+.pile .polaroid:first-child { z-index: 2; }
+.pile .polaroid { position: relative; width: 100%; outline-offset: 6px; -webkit-tap-highlight-color: transparent; }
+.pile .pf { aspect-ratio: 100 / 146; }
+.pile .face { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 9px 9px 0; }
+.pile .face.front img { flex: 1 1 0; min-height: 0; width: 100%; height: auto; aspect-ratio: auto; object-fit: cover; }
+.pile .face figcaption { min-height: 2.7em; display: grid; place-items: center; padding: .2rem .1rem .35rem; font-size: 1.2rem; }
+.pile .booth-face { padding-bottom: 9px; }
+.pile .face.booth-face img { object-position: 50% 0; } /* strip is tall: show it from the first frame down */
+.pile .back { padding: 1rem .8rem; justify-content: center; text-align: center; font-size: 1.12rem; line-height: 1.25; overflow: hidden; }
+.pile .tape { width: 76px; height: 21px; top: -11px; }
+.tap-hint {
+  position: absolute; right: 2px; bottom: -21px; z-index: 3; rotate: -5deg; text-shadow: 0 1px 6px rgba(0,0,0,.45);
+  font-family: var(--hand); font-size: 1.15rem; color: var(--fg); opacity: .85; pointer-events: none;
+  animation: nudge 1.8s var(--ease) infinite; transition: opacity .4s;
+}
+.pile.touched .tap-hint { opacity: 0; }
+@keyframes nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+/* =========================================================
+   CAKE: draggable match, candles that stay lit
+   ========================================================= */
+.candle { outline-offset: 4px; }
+.candle.lit { cursor: default; }
+.candle.lit .flame { will-change: transform; }
+.match {
+  position: absolute; left: 100%; top: 33%; z-index: 5; width: 46px; height: 122px; margin-left: -20px;
+  touch-action: none; cursor: grab; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+  transition: transform .4s var(--ease), opacity .6s var(--ease); will-change: transform;
+}
+.match.dragging { transition: opacity .6s var(--ease); cursor: grabbing; }
+.match.gone { opacity: 0; pointer-events: none; }
+.match-stick {
+  position: absolute; left: 50%; bottom: 6px; width: 11px; margin-left: -5.5px;
+  transform-origin: 50% 100%; transform: rotate(12deg); animation: beckon 2.6s var(--ease) infinite;
+}
+.match.burning .match-stick { animation: none; }
+@keyframes beckon { 0%, 70%, 100% { transform: rotate(12deg); } 80% { transform: rotate(4deg); } 90% { transform: rotate(16deg); } }
+.match-stick img { width: 100%; height: auto; display: block; pointer-events: none; }
+.match-tip { position: absolute; left: 50%; top: 5px; width: 0; height: 0; }
+.match-fire {
+  position: absolute; left: 50%; top: -22px; width: 14px; height: 26px; translate: -50% 0;
+  background: radial-gradient(ellipse at 50% 72%, #fffbe6 0 18%, #ffd27a 42%, #ff9442 72%, transparent 74%);
+  border-radius: 50% 50% 45% 45% / 62% 62% 38% 38%;
+  filter: drop-shadow(0 0 8px rgba(255,190,90,.95));
+  opacity: 0; transform: scale(.3); transition: opacity .2s, transform .3s; pointer-events: none;
+}
+.match.burning .match-fire { opacity: 1; transform: scale(1); animation: flicker2 .5s ease-in-out infinite alternate; }
+@keyframes flicker2 { from { transform: scale(1) rotate(-3deg); } to { transform: scale(.9, 1.1) rotate(3deg); } }
+
+/* call-to-action buttons that arrive a beat later */
+.cta { opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity .9s var(--ease), transform .9s var(--ease); }
+.cta.show { opacity: 1; transform: none; pointer-events: auto; }
+.letter-scene .cta { margin-top: 2.4rem; }
+
+/* =========================================================
+   BEAT 3: save-the-date card (same look as the pre-9-Dec card)
+   ========================================================= */
+.invite-scene {
+  --wine: #4A1C24; --sage-dark: #5E6650; --ivory: #FAF6EE;
+  color: var(--ivory); font-family: "Cormorant Garamond", serif; background: #2A1418; overflow: hidden;
+}
+.invite-scene[hidden] { display: none; }
+.invite-scene::before {
+  content: ""; position: absolute; inset: -12px; z-index: -1;
+  background:
+    linear-gradient(180deg, #2A0E12, rgba(30,12,16,.4) 30%, rgba(30,12,16,.7)),
+    url("../img/bg-floral.jpg") center / cover no-repeat;
+  background:
+    linear-gradient(180deg, #2A0E12, rgba(30,12,16,.4) 30%, rgba(30,12,16,.7)),
+    image-set(url("../img/bg-floral.webp") type("image/webp"), url("../img/bg-floral.jpg") type("image/jpeg")) center / cover no-repeat;
+}
+.invite-scene p { margin: 0; }
+.invite-scene .script { font-family: "Pinyon Script", cursive; font-weight: 400; }
+.invite-scene .caps { font-weight: 500; font-size: .82rem; letter-spacing: .22em; text-transform: uppercase; }
+.invite-scene .save-card-wrap { margin: 2rem 0 4.5rem; }
