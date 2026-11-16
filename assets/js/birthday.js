@@ -12,26 +12,22 @@
   /* =====================================================
      PACING  (edit the numbers here)
      The page never scrolls by hand. Each chapter glides in, shows its
-     text in order, holds for the seconds below, then a Continue button
-     appears. Open the link with ?fast to skip the waiting while testing
-     (combine with ?preview before 9 Dec:  ?preview&fast).
+     text in order, and then holds for about as long as a person needs to
+     read it: the script counts the words on screen, reads them at a
+     normal speed (each line only once it has faded in), adds a moment for
+     photos and a pause at the end. Then Continue appears. Change the copy
+     and the timing follows. Open the link with ?fast to skip the waiting
+     while testing (combine with ?preview before 9 Dec:  ?preview&fast).
      ===================================================== */
-  const HOLD = {              // seconds the chapter holds before Continue appears
-    hero: 8,
-    story: 13,
-    years: 21,                // includes the sky changing from noon to night
-    dream: 14,
-    confess: 16,
-    firsts: 13,               // the ticket and the first-date story
-    'firsts-chat': 14,        // the 15 January chat
-    us: 24,                   // time to flip the photos
-    engaged: 9,
-    tonight: 16,
+  const READING = {
+    wordsPerSecond: 4.6,      // about 275 words a minute: brisk but natural for short lines. A slower reader just takes longer to press Continue
+    glance: .15,              // seconds to notice a new line before reading it
+    photo: .8,                // seconds to take in a photo
+    pause: .7,                // seconds to let it sink in after the last line
+    min: 3.5,                 // no chapter holds for less than this
+    extra: { confess: 1, tonight: 1, us: 4 },   // a little longer where she wants a beat (or to flip the photos)
   };
-  const SKY = {               // [seconds before the sky starts to change, seconds the change takes]
-    years: [10, 10],
-    engaged: [2.5, 6],
-  };
+  const SKY = { years: 6, engaged: 5 };    // seconds the sky takes to change in those two chapters
   const FAST = qs.has('fast');
   const PACE = FAST ? .12 : 1;
   const sec = s => Math.max(FAST ? 600 : 0, s * 1000 * PACE);
@@ -327,10 +323,10 @@
     sc.prepend(deco);
   });
 
-  function playSky(sc, [delay, dur]) {
+  function playSky(sc, delayMs, durMs) {
     const fx = tracks.get(sc);
     if (!fx) return;
-    const t0 = performance.now(), d = delay * 1000 * PACE, D = Math.max(300, dur * 1000 * PACE);
+    const t0 = performance.now(), d = delayMs * PACE, D = Math.max(300, durMs * PACE);
     const step = now => {
       const p = clamp((now - t0 - d) / D);
       fx.apply(p);
@@ -361,19 +357,37 @@
   /* =====================================================
      REVEALS: a chapter's text appears one piece at a time when it arrives
      ===================================================== */
-  const STEP = e => e.classList.contains('bubble') ? 1100 : e.matches('.polaroid, .ticket, .notif') ? 420 : 520;
-  function revealList(items, base = 250) {
+  const STEP = e => e.classList.contains('bubble') ? 950 : e.matches('.polaroid, .ticket, .notif') ? 380 : 440;
+  function revealList(items, base = 200) {
     let t = base, last = base;
+    const plan = [];
     for (const e of items) {
       if (e.classList.contains('in')) continue;
       e.style.transitionDelay = Math.round(t * PACE) + 'ms';
       e.classList.add('in');
+      plan.push({ el: e, at: t });                // unscaled ms after the chapter starts to appear
       last = t; t += STEP(e);
     }
-    return Math.round((last + 900) * PACE);       // ms until the last piece has finished fading in
+    return { done: Math.round((last + 900) * PACE), plan };   // ms until the last piece has finished fading in
   }
   const stopOf = e => e.closest('[data-stop]');
   const revealStop = (stop, base) => revealList($$('.reveal', stop).filter(e => stopOf(e) === stop), base);
+
+  // ---- simulated reading: how long until a person would be done with this chapter
+  const wordsOf = e => e ? e.textContent.replace(/\b\d\d:\d\d\b/g, '').trim().split(/\s+/).filter(Boolean).length : 0;
+  function readMs(e) {
+    if (e.matches('.doodles, .divider, .year-track, .rings')) return 200;
+    if (e.matches('.year-counter')) return 3400;                                     // it rolls from 2013 to 2025
+    if (e.matches('.polaroid')) return (READING.photo + wordsOf(e.querySelector('figcaption')) / READING.wordsPerSecond) * 1000;
+    if (e.matches('.ticket')) return (READING.photo * .8 + wordsOf(e) / READING.wordsPerSecond) * 1000;
+    const skim = e.matches('.kicker, .chat-date, .day-tag') ? 2.5 : 1;               // small labels are skimmed
+    return (READING.glance + wordsOf(e) / (READING.wordsPerSecond * skim)) * 1000;
+  }
+  function readingEnd(plan) {
+    let t = 0;
+    for (const { el, at } of plan) t = Math.max(t, at + 450) + readMs(el);          // can't read a line before it has faded in
+    return t;
+  }
 
   const yearEl = $('#yearCounter'), yearFill = $('#yearFill');
   function rollYears() {
@@ -433,6 +447,7 @@
   function showNext() { ready = true; nextBox.classList.remove('holding'); nextBox.classList.add('ready'); }
   function hideNext() { ready = false; nextBox.classList.remove('holding', 'ready'); }
 
+  window.__guided = { holds: [] };      // (for testing) the hold worked out for each chapter, in seconds
   async function enter(i) {
     cur = i;
     const stop = STOPS[i], key = stop.dataset.stop;
@@ -441,11 +456,19 @@
     glideTo(anchorY, GLIDE);
     await wait(GLIDE * .65);            // the text starts fading in as the glide settles
     if (cur !== i) return;
-    const done = revealStop(stop, key === 'cake' ? 300 : 250);
+    const { done, plan } = revealStop(stop, key === 'cake' ? 300 : 200);
     if (key === 'years') rollYears();
-    if (SKY[key]) playSky(stop, SKY[key]);
     if (key === 'cake') return cakeArrive(done);
-    const hold = Math.max(sec(HOLD[key] ?? 12), done + sec(2));
+    const read = readingEnd(plan);
+    let holdMs = Math.max(READING.min * 1000, read + (READING.pause + (READING.extra[key] || 0)) * 1000);
+    if (SKY[key]) {                     // the sky starts changing just as she finishes reading, then settles
+      const dur = SKY[key] * 1000;
+      const delay = key === 'years' ? Math.max(1000, read - dur * .3) : 1500;
+      playSky(stop, delay, dur);
+      holdMs = Math.max(holdMs, delay + dur + 1000);
+    }
+    window.__guided.holds.push({ key, seconds: +(holdMs / 1000).toFixed(1), reading: +(read / 1000).toFixed(1) });
+    const hold = Math.max(FAST ? 700 : 0, holdMs * PACE, done + 600 * PACE);
     showHold(hold);
     await wait(hold);
     if (cur === i) showNext();
