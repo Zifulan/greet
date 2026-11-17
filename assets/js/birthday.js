@@ -560,7 +560,7 @@
   // go to the next / previous chapter. A manual move (button or swipe) means she took over: autoplay pauses.
   // The song's beat grid (measured from the mp3). A chapter change that happens by itself waits for the next beat,
   // so the glide lands on the beat, and when a chorus is about to start it lands exactly on the chorus.
-  const BEAT = { period: 60 / 114.9, offset: .41, choruses: [40.4, 112.4, 174.4] };
+  const BEAT = { period: .5, offset: .29, choruses: [40.3, 112.3, 174.3] };   // 120 BPM exactly; bars are 2 s; the choruses start on bars 20, 56 and 87
   function beatDelay(glideMs) {
     if (FAST || reduced || !songOk || song.paused || looped) return 0;
     const t = song.currentTime + glideMs / 1000;               // when the next chapter would arrive
