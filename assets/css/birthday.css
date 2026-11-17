@@ -747,3 +747,18 @@ html.guided .pile { grid-template-columns: repeat(2, min(39vw, 185px)); gap: 1re
 .cd-box b { display: block; font: 500 1.9rem/1 "Cormorant Garamond", serif; font-variant-numeric: tabular-nums; }
 .cd-box span { display: block; margin-top: .35rem; font-size: .66rem; letter-spacing: .16em; text-transform: uppercase; opacity: .75; }
 .cd-end { font-size: 1.9rem; margin-top: 1.3rem !important; line-height: 1.2; }
+
+/* ---------- more life: bouquets in the corners, slow photo drift, doodles that draw themselves ---------- */
+.bloom { position: absolute; width: 34vw; max-width: 170px; opacity: .92; filter: drop-shadow(0 6px 10px rgba(43,20,22,.18)); transform-origin: 50% 100%; }
+.bloom.l { left: -9vw; }
+.bloom.r { right: -9vw; transform: scaleX(-1); }
+.scene.on .bloom.l { animation: sway-l 7s ease-in-out infinite alternate; }
+.scene.on .bloom.r { animation: sway-r 7.6s ease-in-out infinite alternate; }
+@keyframes sway-l { from { transform: rotate(-2.5deg); } to { transform: rotate(2.5deg); } }
+@keyframes sway-r { from { transform: scaleX(-1) rotate(-2.5deg); } to { transform: scaleX(-1) rotate(2.5deg); } }
+.scene.on .polaroid.in .face.front img { animation: drift 14s ease-in-out infinite alternate; }
+@keyframes drift { from { transform: scale(1); } to { transform: scale(1.07) translate(-1.2%, -1%); } }
+.polaroid .face.front { overflow: hidden; }
+.doodles .doodle { clip-path: inset(0 100% 0 0); transition: clip-path 1.4s var(--ease) .25s; }
+.doodles.in .doodle { clip-path: inset(0 0 0 0); }
+@media (prefers-reduced-motion: reduce) { .scene.on .bloom, .scene.on .polaroid.in img { animation: none; } .doodles .doodle { clip-path: none; } }

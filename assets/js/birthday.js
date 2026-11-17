@@ -291,6 +291,7 @@
     return sf;
   };
 
+  const BLOOMS = { story: ['peach', 'r', -2], dream: ['orchid', 'l', 62], confess: ['burgundy', 'r', 70], firsts: ['whitemix', 'l', 66], 'firsts-chat': ['peach', 'r', 72], tonight: ['burgundy', 'l', -2] };
   const scenes = $$('.scene[data-time]');
   const tracks = new Map();   // scene -> { apply(p) }
 
@@ -354,6 +355,13 @@
     if (T.moon) { const m = img('orb moon', ART + 'moon.webp'); m.style.opacity = T.moon; deco.append(m); }
     if (T.sun) deco.append(img('orb sun', ART + 'sun.webp'));
     if (T.clouds) deco.append(cloudset(T.clouds));
+    // a bouquet tucked into a corner of the chapter, swaying gently while the chapter is on screen
+    if (BLOOMS[sc.dataset.stop]) {
+      const [kind, side, topPct] = BLOOMS[sc.dataset.stop];
+      const bl = img('bloom ' + side, `assets/img/bq/${kind}.webp`);
+      bl.style.top = topPct + '%';
+      deco.append(bl);
+    }
     sc.prepend(deco);
   });
 
@@ -520,6 +528,7 @@
     const prev = cur;
     cur = i; entering = true;
     const stop = STOPS[i], key = stop.dataset.stop;
+    STOPS.forEach(s => s.classList.toggle('on', s === stop));
     stopTimer(); tasks.delete('assist');
     player.dataset.mode = key === 'cake' ? 'cake' : 'chapter';
     plPrev.disabled = i === 0;
@@ -549,11 +558,27 @@
   }
 
   // go to the next / previous chapter. A manual move (button or swipe) means she took over: autoplay pauses.
+  // The song's beat grid (measured from the mp3). A chapter change that happens by itself waits for the next beat,
+  // so the glide lands on the beat, and when a chorus is about to start it lands exactly on the chorus.
+  const BEAT = { period: 60 / 114.9, offset: .41, choruses: [40.4, 112.4, 174.4] };
+  function beatDelay(glideMs) {
+    if (FAST || reduced || !songOk || song.paused || looped) return 0;
+    const t = song.currentTime + glideMs / 1000;               // when the next chapter would arrive
+    const c = BEAT.choruses.find(x => x >= t && x - t <= 4.2);
+    const d = c !== undefined ? c - t : (Math.ceil((t - BEAT.offset) / BEAT.period) * BEAT.period + BEAT.offset) - t;
+    return d < .04 ? 0 : d * 1000;
+  }
+  let navTok = 0;
   function go(delta, manual) {
     if (entering || inFinale) return;
     const j = cur + delta;
     if (j < 0 || j >= STOPS.length) return;
+    const tok = ++navTok;
     if (manual) { buzz(10); setAuto(false); }
+    else {
+      const d = beatDelay(GLIDE);
+      if (d > 0) { tasks.delete("timer"); setTimeout(() => { if (tok === navTok && !entering && !inFinale) enter(j); }, d); return; }
+    }
     enter(j);
   }
 
