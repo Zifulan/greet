@@ -28,6 +28,7 @@
     extra: { confess: 1, tonight: 1, us: 4 },   // a little longer where she wants a beat (or to flip the photos)
     interact: 6,              // seconds the page waits after she touches something (flipping a photo)
     assistAfter: 6,           // seconds after she could have read the cake heading before the match lights the candles for her
+    chorusDrop: 'letter',     // when the last chorus comes in: 'letter' (the wish is made in the hush) or 'candles' (the moment the last candle is lit)
     letterWordsPerSecond: 3.2,// how fast the letter scrolls by itself (a little slower: it is the letter)
   };
   const SKY = { years: 6, engaged: 5 };    // seconds the sky takes to change in those two chapters
@@ -178,6 +179,9 @@
   const song = $('#song');
   const musicBtn = $('#musicBtn');
   const LOOP_VOLUME = .3;
+  // The song's map (measured from the instrumental): 120 BPM, a bar is 2 s. Choruses start on bars 20, 56 and 87.
+  // Just before the last chorus there is a quiet 12 s hush (bars 81 to 86).
+  const SONG = { choruses: [40.3, 112.3, 174.3], hushFrom: 162.3, hushLoop: 166.3 };
   let songOk = true, looped = false, tailing = false, fadeToken = 0;
   song.addEventListener('error', () => { songOk = false; musicBtn.hidden = true; });
 
@@ -196,6 +200,7 @@
   const glow = $('#glow');
   let energy = null, glowV = 0, lastBurst = -99, fxOn = false;
   fetch('assets/data/energy.json').then(r => r.json()).then(d => { energy = d; }).catch(() => {});
+  glow.addEventListener('animationend', () => glow.classList.remove('hit'));
   function flash(strength = 1) {            // a key line lands
     if (reduced) return;
     glow.classList.remove('hit'); void glow.offsetWidth; glow.classList.add('hit');
@@ -205,21 +210,54 @@
   function startMusicFx() {
     if (fxOn || reduced) return;
     fxOn = true;
-    let prevE = 0;
+    let lastT = 0;
     const frame = () => {
       requestAnimationFrame(frame);
-      if (!energy || song.paused || glow.classList.contains('hit')) return;
-      const t = song.currentTime, e = energy.e[Math.min(energy.e.length - 1, Math.floor(t / energy.hop))] || 0;
+      if (song.paused) return;
+      const t = song.currentTime;
+      for (const c of SONG.choruses) {                        // a chorus kicks in (only while playing straight through)
+        if (lastT < c && t >= c && t - lastT < .6) flash(c > 170 ? 2.4 : 1.6);
+      }
+      lastT = t;
+      if (!energy || glow.classList.contains('hit')) return;
+      const e = energy.e[Math.min(energy.e.length - 1, Math.floor(t / energy.hop))] || 0;
       glowV += (e - glowV) * .06;
       glow.style.opacity = (glowV * glowV * .5).toFixed(3);
-      if (prevE < .55 && e >= .7 && t - lastBurst > 14) {     // a chorus kicks in
-        lastBurst = t;
-        petalShower(t > 170 ? 70 : 34);
-        buzz(18);
-      }
-      prevE = e;
     };
     requestAnimationFrame(frame);
+  }
+
+  // The last chorus is saved for the letter. While she lights the candles and makes her wish, the song stays in the
+  // hush (the last 4 bars of it loop, and it is so quiet that the seam cannot be heard). When the letter opens, the
+  // chorus drops in on its first beat.
+  const songLive = () => !FAST && songOk && !song.paused && !looped;
+  let hushOn = false, hushTimer = 0;
+  function crossfadeTo(to) {
+    fadeTo(0, 350);
+    setTimeout(() => { try { song.currentTime = to; } catch {} fadeTo(1, 600); }, 380);
+  }
+  function holdHush() {
+    if (FAST || !songOk || song.paused) return;
+    hushOn = true;
+    const t = song.currentTime;
+    if (looped || t >= SONG.choruses[2] - .4) crossfadeTo(SONG.hushLoop);     // the song already ran past it
+    else if (t < 150) crossfadeTo(SONG.hushFrom);                              // she got here early
+    clearInterval(hushTimer);
+    hushTimer = setInterval(() => {
+      if (!hushOn || song.paused) return;
+      const t2 = song.currentTime;
+      if (t2 >= SONG.choruses[2] - .35 && t2 < SONG.choruses[2] + 2) song.currentTime = SONG.hushLoop;
+    }, 40);
+  }
+  const releaseHush = () => { hushOn = false; };
+  function dropChorus() {
+    hushOn = false;
+    if (FAST || !songOk) return;
+    looped = false; tailing = false;
+    try { song.currentTime = SONG.choruses[2]; } catch {}
+    fadeTo(1, 250);
+    if (song.paused) song.play().catch(() => {});
+    flash(2.4);
   }
   async function playSong() {
     if (!songOk || !song.paused) return;
@@ -531,6 +569,7 @@
     STOPS.forEach(s => s.classList.toggle('on', s === stop));
     stopTimer(); tasks.delete('assist');
     player.dataset.mode = key === 'cake' ? 'cake' : 'chapter';
+    if (key !== 'cake') releaseHush();
     plPrev.disabled = i === 0;
     anchorY = targetFor(stop);
     const glide = glideTo(anchorY, GLIDE);
@@ -545,9 +584,17 @@
       let holdMs = Math.max(READING.min * 1000, read + (READING.pause + (READING.extra[key] || 0)) * 1000);
       if (SKY[key]) {                   // the sky starts changing just as she finishes reading, then settles
         const dur = SKY[key] * 1000;
-        const delay = key === 'years' ? Math.max(1000, read - dur * .3) : 1500;
+        let delay = key === 'years' ? Math.max(1000, read - dur * .3) : 1500;
+        if (key === 'years' && songLive()) {       // night should be complete just as the first chorus lands
+          const want = (SONG.choruses[0] + 1.2 - dur / 1000 - song.currentTime) * 1000;
+          if (want > 1000 && want < read) delay = want;
+        }
         playSky(stop, delay, dur);
         holdMs = Math.max(holdMs, delay + dur + 1000);
+      }
+      if (STOPS[i + 1]?.dataset.stop === 'firsts-chat' && songLive()) {   // the chat ("cieee", "yesss") opens on chorus 2
+        const d = SONG.choruses[1] - (song.currentTime + (holdMs + GLIDE) / 1000);
+        if (d > -2 && d < 9) holdMs += d * 1000;
       }
       window.__guided.holds.push({ key, seconds: +(holdMs / 1000).toFixed(1), reading: +(read / 1000).toFixed(1) });
       runTimer(Math.max(FAST ? 700 : 0, holdMs * PACE, done + 600 * PACE), () => go(1, false));
@@ -560,7 +607,7 @@
   // go to the next / previous chapter. A manual move (button or swipe) means she took over: autoplay pauses.
   // The song's beat grid (measured from the mp3). A chapter change that happens by itself waits for the next beat,
   // so the glide lands on the beat, and when a chorus is about to start it lands exactly on the chorus.
-  const BEAT = { period: .5, offset: .29, choruses: [40.3, 112.3, 174.3] };   // 120 BPM exactly; bars are 2 s; the choruses start on bars 20, 56 and 87
+  const BEAT = { period: .5, offset: .29, choruses: SONG.choruses };   // 120 BPM exactly; bars are 2 s; the choruses start on bars 20, 56 and 87
   function beatDelay(glideMs) {
     if (FAST || reduced || !songOk || song.paused || looped) return 0;
     const t = song.currentTime + glideMs / 1000;               // when the next chapter would arrive
@@ -705,8 +752,7 @@
 
   function cakeArrive(revealMs, plan) {
     setTimeout(() => { armed = true; match.classList.add('armed'); }, revealMs * .6);
-    // if the song already ran out and is looping softly, bring the last chorus back for the cake
-    if (looped && songOk) { song.currentTime = 173; fadeTo(.75, 3000); }
+    holdHush();      // the song waits in its hush for the wish
     // hands-free: when she has had time to read the heading and hasn't touched anything, the match lights the candles
     const wait4 = (readingEnd(plan) + READING.assistAfter * 1000) * PACE;
     let idle0 = storyT;
@@ -820,6 +866,7 @@
   async function finale() {
     if (allLit) return;
     allLit = true; inFinale = true;
+    if (READING.chorusDrop === 'candles') dropChorus();
     drag = null;
     tasks.delete('assist');
     match.classList.remove('dragging', 'burning');
@@ -859,6 +906,7 @@
     veil.classList.remove('on');
     revealList($$('.reveal', pageEl), 450);
     if (page === 'letter') {
+      if (READING.chorusDrop !== 'candles') dropChorus();
       startLetterRead();
       setTimeout(() => btnLast.classList.add('show'), sec(2.6));
     }
