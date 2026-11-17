@@ -762,3 +762,12 @@ html.guided .pile { grid-template-columns: repeat(2, min(39vw, 185px)); gap: 1re
 .doodles .doodle { clip-path: inset(0 100% 0 0); transition: clip-path 1.4s var(--ease) .25s; }
 .doodles.in .doodle { clip-path: inset(0 0 0 0); }
 @media (prefers-reduced-motion: reduce) { .scene.on .bloom, .scene.on .polaroid.in img { animation: none; } .doodles .doodle { clip-path: none; } }
+
+/* words in the letter that echo the song light up like a marker when the song reaches them */
+.letter .lyr { border-radius: 3px; background: linear-gradient(transparent 58%, rgba(255,190,100,0) 58%) no-repeat 0 0 / 0% 100%; transition: color 1s var(--ease); }
+.letter .lyr.sung {
+  color: #7d0f2e; background: linear-gradient(transparent 58%, rgba(255,190,100,.62) 58%) no-repeat 0 0 / 100% 100%;
+  text-shadow: 0 0 12px rgba(255,200,130,.55); animation: lyrSweep 1.2s var(--ease);
+}
+@keyframes lyrSweep { from { background-size: 0% 100%; } to { background-size: 100% 100%; } }
+@media (prefers-reduced-motion: reduce) { .letter .lyr.sung { animation: none; } }

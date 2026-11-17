@@ -28,6 +28,7 @@
     extra: { confess: 1, tonight: 1, us: 4 },   // a little longer where she wants a beat (or to flip the photos)
     interact: 6,              // seconds the page waits after she touches something (flipping a photo)
     assistAfter: 6,           // seconds after she could have read the cake heading before the match lights the candles for her
+    vocalEntryBars: 8,        // the letter opens on the instrumental chorus; after this many bars (2 s each) the vocal version comes in
     chorusDrop: 'letter',     // when the last chorus comes in: 'letter' (the wish is made in the hush) or 'candles' (the moment the last candle is lit)
     letterWordsPerSecond: 3.2,// how fast the letter scrolls by itself (a little slower: it is the letter)
   };
@@ -276,20 +277,51 @@
     fadeTo(1, 250);
     if (song.paused) song.play().catch(() => {});
   }
+  // Lines of the last chorus that the letter echoes: seconds after the chorus starts, measured from the vocal version
+  // (every line is 2 bars long; the gaps in the singing fall every 4 s). Each cue lights the matching words in the letter.
+  const LYRIC_CUES = [['a', .5], ['b', 12.5], ['c', 16.5], ['d', 28.5], ['e', 32.5], ['f', 36.5]];
+  const cuesDone = new Set();
+  let entryPending = false, letterMusicTimer = 0;
+  function letterMusicTick() {
+    if (entryPending && !song.paused && song.currentTime >= SONG.choruses[2] + READING.vocalEntryBars * 2 - .06) {
+      entryPending = false;
+      enterVocal();
+    }
+    if (vocalOn && onLetter) {
+      const into = vocal.currentTime - (SONG.choruses[2] - VOCAL_LAG);
+      for (const [id, at] of LYRIC_CUES) {
+        if (cuesDone.has(id) || into < at) continue;
+        cuesDone.add(id);
+        const w = $(`#letter [data-cue="${id}"]`);
+        if (w) { w.classList.add('sung'); buzz(8); }
+      }
+      if (cuesDone.size === LYRIC_CUES.length) { clearInterval(letterMusicTimer); }
+    }
+  }
+  // the vocals come in: a bar line of the instrumental chorus meets the first beat of the vocal version's chorus.
+  // The chords repeat every 2 bars, so the join is seamless.
+  function enterVocal() {
+    if (!vocalOk || vocal.readyState < 2) return;                  // no vocal file: the instrumental plays on
+    const at = SONG.choruses[2] - VOCAL_LAG;
+    if (Math.abs(vocal.currentTime - at) > .05) { try { vocal.currentTime = at; } catch {} }
+    vocal.muted = song.muted; vocal.volume = 0; vocalTail = false;
+    vocal.play().then(() => {
+      vocalOn = true;
+      fadeAudio(vocal, 1, 600);
+      fadeTo(0, 1000); setTimeout(() => song.pause(), 1100);
+      flash(1.6);
+    }).catch(() => {});
+  }
   function dropChorus() {
     hushOn = false;
     if (FAST || !songOk) return;
     looped = false; tailing = false;
     flash(2.4);
-    const at = SONG.choruses[2] - VOCAL_LAG;
-    if (vocalOk && vocal.readyState >= 2) {
-      if (Math.abs(vocal.currentTime - at) > .05) { try { vocal.currentTime = at; } catch {} }
-      vocal.muted = song.muted; vocal.volume = 1; vocalTail = false;
-      vocal.play().then(() => {
-        vocalOn = true;
-        fadeTo(0, 200); setTimeout(() => song.pause(), 260);       // the instrumental was only a whisper here
-      }).catch(dropInstrumental);
-    } else dropInstrumental();                                    // no vocal file: the instrumental plays the chorus
+    dropInstrumental();                                           // the chorus drops in, instrumental first
+    cuesDone.clear();
+    entryPending = vocalOk;
+    clearInterval(letterMusicTimer);
+    letterMusicTimer = setInterval(letterMusicTick, 50);
   }
   // the vocal version runs out: fade it, then the instrumental comes back softly for whoever is still reading
   vocal.addEventListener('timeupdate', () => {
@@ -607,7 +639,7 @@
     if (key === 'years') { tasks.delete('years-count'); yearEl.textContent = '2013'; yearFill.style.transform = 'scaleX(0)'; }
   }
 
-  window.__guided = { holds: [], get cur() { return cur; }, get auto() { return auto; }, get t() { return storyT; } };   // (for testing)
+  window.__guided = { holds: [], get vocal() { return { on: vocalOn, t: vocal.currentTime, paused: vocal.paused }; }, get cur() { return cur; }, get auto() { return auto; }, get t() { return storyT; } };   // (for testing)
   async function enter(i) {
     const prev = cur;
     cur = i; entering = true;
