@@ -839,6 +839,17 @@
     }
     swapping = false;
   }
+  // countdown to the wedding (12 Dec 2026, WIB)
+  const WEDDING = Date.parse('2026-12-12T00:00:00+07:00');
+  const cd = { d: $('#cdD'), h: $('#cdH'), m: $('#cdM'), s: $('#cdS') };
+  function tickCountdown() {
+    const left = Math.max(0, WEDDING - Date.now()), pad = n => String(n).padStart(2, '0');
+    cd.d.textContent = Math.floor(left / 864e5);
+    cd.h.textContent = pad(Math.floor(left / 36e5) % 24);
+    cd.m.textContent = pad(Math.floor(left / 6e4) % 60);
+    cd.s.textContent = pad(Math.floor(left / 1e3) % 60);
+  }
+  tickCountdown(); setInterval(tickCountdown, 1000);
   btnLetter.addEventListener('click', () => swapTo('letter'));
   btnLast.addEventListener('click', () => swapTo('invite'));
 

@@ -737,3 +737,13 @@ html.guided .pile { grid-template-columns: repeat(2, min(39vw, 185px)); gap: 1re
 .reveal.hit.in { filter: none; transform: none; }
 .display.hit.in em, .big.hit.in { text-shadow: 0 0 22px rgba(255,200,140,.55); }
 @media (prefers-reduced-motion: reduce) { .glow { display: none; } .reveal.hit { filter: none; transform: none; } }
+
+/* last page: countdown to the wedding */
+.invite-scene .save-card-wrap { margin: 1.4rem 0 2.2rem; }
+.countdown { text-align: center; color: var(--ivory); }
+.cd-label { opacity: .8; margin-bottom: .9rem !important; }
+.cd-row { display: flex; gap: .6rem; justify-content: center; }
+.cd-box { min-width: 64px; padding: .7rem .3rem .55rem; border-radius: 12px; background: rgba(250,246,238,.08); border: 1px solid rgba(250,246,238,.22); }
+.cd-box b { display: block; font: 500 1.9rem/1 "Cormorant Garamond", serif; font-variant-numeric: tabular-nums; }
+.cd-box span { display: block; margin-top: .35rem; font-size: .66rem; letter-spacing: .16em; text-transform: uppercase; opacity: .75; }
+.cd-end { font-size: 1.9rem; margin-top: 1.3rem !important; line-height: 1.2; }
