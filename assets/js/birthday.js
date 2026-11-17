@@ -182,6 +182,25 @@
   // The song's map (measured from the instrumental): 120 BPM, a bar is 2 s. Choruses start on bars 20, 56 and 87.
   // Just before the last chorus there is a quiet 12 s hush (bars 81 to 86).
   const SONG = { choruses: [40.3, 112.3, 174.3], hushFrom: 162.3, hushLoop: 166.3 };
+  // The story plays over the instrumental. When the last chorus drops, the version with the vocals takes over at the
+  // same moment of the song (measured: the instrumental file runs 0.517 s later than the vocal file).
+  const VOCAL_LAG = .517;
+  const vocal = new Audio('assets/audio/night-changes-vocal.mp3');
+  vocal.preload = 'none'; vocal.volume = 0;
+  let vocalOk = true, vocalOn = false, vocalTail = false;
+  vocal.addEventListener('error', () => { vocalOk = false; });
+  const fades = new WeakMap();
+  function fadeAudio(el, target, ms) {
+    const token = (fades.get(el) || 0) + 1, from = el.volume, t0 = performance.now();
+    fades.set(el, token);
+    const step = now => {
+      if (fades.get(el) !== token) return;
+      const k = Math.min(1, (now - t0) / ms);
+      try { el.volume = clamp(from + (target - from) * k); } catch {}
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
   let songOk = true, looped = false, tailing = false, fadeToken = 0;
   song.addEventListener('error', () => { songOk = false; musicBtn.hidden = true; });
 
@@ -213,8 +232,9 @@
     let lastT = 0;
     const frame = () => {
       requestAnimationFrame(frame);
-      if (song.paused) return;
-      const t = song.currentTime;
+      const el = vocalOn ? vocal : song;
+      if (el.paused) return;
+      const t = el.currentTime + (vocalOn ? VOCAL_LAG : 0);      // always on the instrumental's clock
       for (const c of SONG.choruses) {                        // a chorus kicks in (only while playing straight through)
         if (lastT < c && t >= c && t - lastT < .6) flash(c > 170 ? 2.4 : 1.6);
       }
@@ -239,6 +259,7 @@
   function holdHush() {
     if (FAST || !songOk || song.paused) return;
     hushOn = true;
+    if (vocalOk && vocal.paused && !vocalOn) { try { vocal.currentTime = SONG.choruses[2] - VOCAL_LAG; } catch {} }   // cue it
     const t = song.currentTime;
     if (looped || t >= SONG.choruses[2] - .4) crossfadeTo(SONG.hushLoop);     // the song already ran past it
     else if (t < 150) crossfadeTo(SONG.hushFrom);                              // she got here early
@@ -250,20 +271,43 @@
     }, 40);
   }
   const releaseHush = () => { hushOn = false; };
+  function dropInstrumental() {
+    try { song.currentTime = SONG.choruses[2]; } catch {}
+    fadeTo(1, 250);
+    if (song.paused) song.play().catch(() => {});
+  }
   function dropChorus() {
     hushOn = false;
     if (FAST || !songOk) return;
     looped = false; tailing = false;
-    try { song.currentTime = SONG.choruses[2]; } catch {}
-    fadeTo(1, 250);
-    if (song.paused) song.play().catch(() => {});
     flash(2.4);
+    const at = SONG.choruses[2] - VOCAL_LAG;
+    if (vocalOk && vocal.readyState >= 2) {
+      if (Math.abs(vocal.currentTime - at) > .05) { try { vocal.currentTime = at; } catch {} }
+      vocal.muted = song.muted; vocal.volume = 1; vocalTail = false;
+      vocal.play().then(() => {
+        vocalOn = true;
+        fadeTo(0, 200); setTimeout(() => song.pause(), 260);       // the instrumental was only a whisper here
+      }).catch(dropInstrumental);
+    } else dropInstrumental();                                    // no vocal file: the instrumental plays the chorus
   }
+  // the vocal version runs out: fade it, then the instrumental comes back softly for whoever is still reading
+  vocal.addEventListener('timeupdate', () => {
+    if (!vocalOn || vocalTail || !vocal.duration) return;
+    if (vocal.duration - vocal.currentTime < 5) { vocalTail = true; fadeAudio(vocal, 0, 4500); }
+  });
+  vocal.addEventListener('ended', () => {
+    vocalOn = false; looped = true; fadeToken++;
+    try { song.currentTime = 0; song.volume = 0; } catch {}
+    song.play().then(() => fadeTo(LOOP_VOLUME, 3000)).catch(() => {});
+  });
   async function playSong() {
     if (!songOk || !song.paused) return;
     try {
       song.volume = 0;
-      await song.play();
+      const started = song.play();
+      if (vocalOk) { vocal.load(); vocal.play().then(() => vocal.pause()).catch(() => {}); }   // unlocked by this tap, silent
+      await started;
       fadeTo(1, 1500);
       musicBtn.hidden = false;
       startMusicFx();
@@ -283,7 +327,9 @@
   });
   musicBtn.addEventListener('click', () => {
     song.muted = !song.muted;
-    if (!song.muted && song.paused) song.play().catch(() => {});
+    vocal.muted = song.muted;
+    const active = vocalOn ? vocal : song;
+    if (!song.muted && active.paused) active.play().catch(() => {});
     musicBtn.classList.toggle('muted', song.muted);
     musicBtn.setAttribute('aria-pressed', String(song.muted));
     musicBtn.setAttribute('aria-label', song.muted ? 'Unmute music' : 'Mute music');
