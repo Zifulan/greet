@@ -184,7 +184,7 @@
   // The file on the page is one remix: the instrumental up to a bar line at 190.8 s (the last chorus has played 16 s),
   // then the vocal version from its own last-chorus downbeat. The join sits on a bar line, so it plays as one piece.
   // Replays use the full vocal version.
-  const SONG = { choruses: [40.8, 112.8, 174.8], hushFrom: 162.8, vocalIn: 190.8 };
+  const SONG = { choruses: [40.8, 112.8, 174.8], hushFrom: 162.3, hushLoop: 166.3, hushEnd: 173.95, vocalIn: 190.8 };
   const instClock = p => p > SONG.vocalIn ? p - 16 : p;       // after the join the remix is 16 s ahead of the instrumental
   const vocal = new Audio('assets/audio/night-changes-vocal.mp3');
   vocal.preload = 'none'; vocal.loop = true; vocal.volume = 0;
@@ -239,7 +239,7 @@
   }
 
   // The last chorus is saved for the letter. While she lights the candles and makes her wish, the song stays in the
-  // hush (its last 4 bars loop, and it is so quiet that the seam cannot be heard). When the letter opens, the
+  // hush (the last bars of it loop, and it is so quiet that the seam cannot be heard). When the letter opens, the
   // chorus drops in on its first beat, and 16 s later the vocals bloom in on the next bar line.
   const songLive = () => !FAST && songOk && !song.paused && !looped;
   let hushOn = false, hushTimer = 0;
@@ -254,18 +254,18 @@
     if (looped) {                                                        // the song already ended and is replaying: bring the hush back
       fadeAudio(vocal, 0, 500); setTimeout(() => vocal.pause(), 520);
       looped = false; tailing = false;
-      try { song.currentTime = SONG.choruses[2] - 8; song.volume = 0; } catch {}
+      try { song.currentTime = SONG.hushLoop; song.volume = 0; } catch {}
       song.play().then(() => fadeTo(1, 700)).catch(() => {});
     } else if (!song.paused) {
       const t = song.currentTime;
-      if (t >= SONG.choruses[2] - .4) crossfadeTo(SONG.choruses[2] - 8);   // the song already ran past it
+      if (t >= SONG.hushEnd - .05) crossfadeTo(SONG.hushLoop);             // the song already ran past it
       else if (t < 150) crossfadeTo(SONG.hushFrom);                        // she got here early
     }
     clearInterval(hushTimer);
     hushTimer = setInterval(() => {
       if (!hushOn || song.paused) return;
       const t2 = song.currentTime;
-      if (t2 >= SONG.choruses[2] - .35 && t2 < SONG.choruses[2] + 2) song.currentTime = t2 - 8;   // exactly 4 bars back
+      if (t2 >= SONG.hushEnd && t2 < SONG.choruses[2] + 2) song.currentTime = SONG.hushLoop;
     }, 40);
   }
   const releaseHush = () => { hushOn = false; };
@@ -286,8 +286,6 @@
       const w = $(`#letter [data-cue="${id}"]`);
       if (!w) continue;
       w.classList.add('sung');
-      const r = w.getBoundingClientRect();
-      ember(r.left + r.width / 2, r.top + r.height / 2, 10);
       buzz(10);
     }
     if (cuesDone.size === LYRIC_CUES.length) clearInterval(letterMusicTimer);
@@ -784,8 +782,8 @@
   const match = $('#match');
   const matchTip = $('.match-tip', match);
   const wishCard = $('#wishCard');
-  const btnLetter = $('#btnLetter'), btnLast = $('#btnLast');
-  const letterEl = $('#letter'), inviteEl = $('#invite');
+  const btnLetter = $('#btnLetter'), btnReplay = $('#btnReplay');
+  const letterEl = $('#letter');
   const LIGHT_RADIUS = 30; // px between match head and wick
   let armed = false, matchLit = false, allLit = false, drag = null, hopping = false, assistPoke = () => {};
   const off = { x: 0, y: 0 };
@@ -944,9 +942,9 @@
     veil.classList.add('on');
     await wait(reduced ? 80 : 560);
     root.classList.add('free');                       // the letter is long, so it scrolls
-    document.body.classList.remove('page-letter', 'page-invite');
+    document.body.classList.remove('page-letter');
     document.body.classList.add('page-' + page);
-    const pageEl = page === 'letter' ? letterEl : inviteEl;
+    const pageEl = letterEl;
     pageEl.hidden = false;
     window.scrollTo(0, 0);
     onLetter = page === 'letter';
@@ -957,23 +955,12 @@
     if (page === 'letter') {
       if (READING.chorusDrop !== 'candles') dropChorus();
       startLetterRead();
-      setTimeout(() => btnLast.classList.add('show'), sec(2.6));
+      setTimeout(() => btnReplay.classList.add('show'), sec(2.6));
     }
     swapping = false;
   }
-  // countdown to the wedding (12 Dec 2026, WIB)
-  const WEDDING = Date.parse('2026-12-12T00:00:00+07:00');
-  const cd = { d: $('#cdD'), h: $('#cdH'), m: $('#cdM'), s: $('#cdS') };
-  function tickCountdown() {
-    const left = Math.max(0, WEDDING - Date.now()), pad = n => String(n).padStart(2, '0');
-    cd.d.textContent = Math.floor(left / 864e5);
-    cd.h.textContent = pad(Math.floor(left / 36e5) % 24);
-    cd.m.textContent = pad(Math.floor(left / 6e4) % 60);
-    cd.s.textContent = pad(Math.floor(left / 1e3) % 60);
-  }
-  tickCountdown(); setInterval(tickCountdown, 1000);
   btnLetter.addEventListener('click', () => swapTo('letter'));
-  btnLast.addEventListener('click', () => swapTo('invite'));
+  btnReplay.addEventListener('click', () => location.reload());      // play it all again, from the gate
 
   // The letter scrolls by itself at reading pace, keeping the line being read about halfway down the screen.
   // Touching it (or pressing pause) hands control back to her; play picks up from wherever she scrolled to.
@@ -993,9 +980,9 @@
       const maxY = document.documentElement.scrollHeight - innerHeight;
       const want = clamp(cursor - innerHeight * .55, 0, maxY);
       window.scrollTo(0, scrollY + (want - scrollY) * Math.min(1, dt / 220));
-      if (cursor >= bottom) {                         // she has read it all: a beat, then the last page
+      if (cursor >= bottom) {                         // she has read it all: the letter just stays, the song keeps playing
         if (endedAt === null) endedAt = T;
-        if (T - endedAt >= 2600 * PACE) { onLetter = false; swapTo('invite'); return true; }
+        if (T - endedAt >= 2600 * PACE) { player.dataset.mode = 'end'; return true; }
       }
       return false;
     });

@@ -763,16 +763,16 @@ html.guided .pile { grid-template-columns: repeat(2, min(39vw, 185px)); gap: 1re
 .doodles.in .doodle { clip-path: inset(0 0 0 0); }
 @media (prefers-reduced-motion: reduce) { .scene.on .bloom, .scene.on .polaroid.in img { animation: none; } .doodles .doodle { clip-path: none; } }
 
-/* words in the letter that echo the song light up like a marker when the song reaches them */
-.letter .lyr { border-radius: 3px; background: linear-gradient(transparent 52%, rgba(255,184,77,0) 52%) no-repeat 0 0 / 0% 100%; }
+/* words in the letter that echo the song are highlighted like a marker the moment the song sings them */
+.letter .lyr {
+  border-radius: .25em; padding: 0 .12em; margin: 0 -.12em; -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  background: linear-gradient(#ffd166, #ffd166) no-repeat 0 50% / 0% 100%;
+}
 .letter .lyr.sung {
-  color: #6b0a26; background: linear-gradient(transparent 52%, rgba(255,184,77,.78) 52%) no-repeat 0 0 / 100% 100%;
-  text-shadow: 0 0 14px rgba(255,190,110,.6); animation: lyrSweep 1s var(--ease), lyrGlow 1.9s ease-out;
+  color: #5a0720; background-size: 100% 100%;
+  box-shadow: 0 0 0 .08em #ffd166, 0 0 16px 3px rgba(255,190,70,.75);
+  animation: lyrSweep .7s var(--ease), lyrFlare 1.6s ease-out;
 }
 @keyframes lyrSweep { from { background-size: 0% 100%; } to { background-size: 100% 100%; } }
-@keyframes lyrGlow {
-  0% { text-shadow: 0 0 0 rgba(255,190,110,0); }
-  22% { text-shadow: 0 0 28px rgba(255,160,50,1), 0 0 8px rgba(255,225,160,1); }
-  100% { text-shadow: 0 0 14px rgba(255,190,110,.6); }
-}
+@keyframes lyrFlare { 0% { box-shadow: 0 0 0 0 rgba(255,209,102,0), 0 0 0 0 rgba(255,190,70,0); } 25% { box-shadow: 0 0 0 .08em #ffd166, 0 0 34px 10px rgba(255,170,40,.95); } 100% { box-shadow: 0 0 0 .08em #ffd166, 0 0 16px 3px rgba(255,190,70,.75); } }
 @media (prefers-reduced-motion: reduce) { .letter .lyr.sung { animation: none; } }
