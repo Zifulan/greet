@@ -28,7 +28,6 @@
     extra: { confess: 1, tonight: 1, us: 4 },   // a little longer where she wants a beat (or to flip the photos)
     interact: 6,              // seconds the page waits after she touches something (flipping a photo)
     assistAfter: 6,           // seconds after she could have read the cake heading before the match lights the candles for her
-    vocalEntryBars: 8,        // the letter opens on the instrumental chorus; after this many bars (2 s each) the vocal version comes in
     chorusDrop: 'letter',     // when the last chorus comes in: 'letter' (the wish is made in the hush) or 'candles' (the moment the last candle is lit)
     letterWordsPerSecond: 3.2,// how fast the letter scrolls by itself (a little slower: it is the letter)
   };
@@ -180,15 +179,16 @@
   const song = $('#song');
   const musicBtn = $('#musicBtn');
   const LOOP_VOLUME = .3;
-  // The song's map (measured from the instrumental): 120 BPM, a bar is 2 s. Choruses start on bars 20, 56 and 87.
-  // Just before the last chorus there is a quiet 12 s hush (bars 81 to 86).
-  const SONG = { choruses: [40.3, 112.3, 174.3], hushFrom: 162.3, hushLoop: 166.3 };
-  // The story plays over the instrumental. When the last chorus drops, the version with the vocals takes over at the
-  // same moment of the song (measured: the instrumental file runs 0.517 s later than the vocal file).
-  const VOCAL_LAG = .517;
+  // The song's map (measured): 120 BPM, a bar is 2 s, and the choruses hit on bars at 40.8, 112.8 and 174.8 s.
+  // Just before the last chorus there is a quiet 12 s hush.
+  // The file on the page is one remix: the instrumental up to a bar line at 190.8 s (the last chorus has played 16 s),
+  // then the vocal version from its own last-chorus downbeat. The join sits on a bar line, so it plays as one piece.
+  // Replays use the full vocal version.
+  const SONG = { choruses: [40.8, 112.8, 174.8], hushFrom: 162.8, vocalIn: 190.8 };
+  const instClock = p => p > SONG.vocalIn ? p - 16 : p;       // after the join the remix is 16 s ahead of the instrumental
   const vocal = new Audio('assets/audio/night-changes-vocal.mp3');
-  vocal.preload = 'none'; vocal.volume = 0;
-  let vocalOk = true, vocalOn = false, vocalTail = false;
+  vocal.preload = 'none'; vocal.loop = true; vocal.volume = 0;
+  let vocalOk = true;
   vocal.addEventListener('error', () => { vocalOk = false; });
   const fades = new WeakMap();
   function fadeAudio(el, target, ms) {
@@ -202,23 +202,14 @@
     };
     requestAnimationFrame(step);
   }
-  let songOk = true, looped = false, tailing = false, fadeToken = 0;
+  let songOk = true, looped = false, tailing = false;
   song.addEventListener('error', () => { songOk = false; musicBtn.hidden = true; });
+  const fadeTo = (target, ms) => fadeAudio(song, target, ms);
 
-  function fadeTo(target, ms) {
-    const token = ++fadeToken, from = song.volume, t0 = performance.now();
-    const step = now => {
-      if (token !== fadeToken) return; // a newer fade took over
-      const k = Math.min(1, (now - t0) / ms);
-      try { song.volume = clamp(from + (target - from) * k); } catch {}
-      if (k < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }
   /* ---- the page breathes with the song: a warm glow rises with the loudness (quiet verses barely, choruses fully),
           and each time a chorus kicks in a shower of petals is let loose. The loudness curve was measured from the mp3. */
   const glow = $('#glow');
-  let energy = null, glowV = 0, lastBurst = -99, fxOn = false;
+  let energy = null, glowV = 0, fxOn = false;
   fetch('assets/data/energy.json').then(r => r.json()).then(d => { energy = d; }).catch(() => {});
   glow.addEventListener('animationend', () => glow.classList.remove('hit'));
   function flash(strength = 1) {            // a key line lands
@@ -233,9 +224,8 @@
     let lastT = 0;
     const frame = () => {
       requestAnimationFrame(frame);
-      const el = vocalOn ? vocal : song;
-      if (el.paused) return;
-      const t = el.currentTime + (vocalOn ? VOCAL_LAG : 0);      // always on the instrumental's clock
+      if (song.paused) return;
+      const t = instClock(song.currentTime);
       for (const c of SONG.choruses) {                        // a chorus kicks in (only while playing straight through)
         if (lastT < c && t >= c && t - lastT < .6) flash(c > 170 ? 2.4 : 1.6);
       }
@@ -249,8 +239,8 @@
   }
 
   // The last chorus is saved for the letter. While she lights the candles and makes her wish, the song stays in the
-  // hush (the last 4 bars of it loop, and it is so quiet that the seam cannot be heard). When the letter opens, the
-  // chorus drops in on its first beat.
+  // hush (its last 4 bars loop, and it is so quiet that the seam cannot be heard). When the letter opens, the
+  // chorus drops in on its first beat, and 16 s later the vocals bloom in on the next bar line.
   const songLive = () => !FAST && songOk && !song.paused && !looped;
   let hushOn = false, hushTimer = 0;
   function crossfadeTo(to) {
@@ -258,109 +248,90 @@
     setTimeout(() => { try { song.currentTime = to; } catch {} fadeTo(1, 600); }, 380);
   }
   function holdHush() {
-    if (FAST || !songOk || song.paused) return;
+    if (FAST || !songOk) return;
     hushOn = true;
-    if (vocalOk && vocal.paused && !vocalOn) { try { vocal.currentTime = SONG.choruses[2] - VOCAL_LAG; } catch {} }   // cue it
-    const t = song.currentTime;
-    if (looped || t >= SONG.choruses[2] - .4) crossfadeTo(SONG.hushLoop);     // the song already ran past it
-    else if (t < 150) crossfadeTo(SONG.hushFrom);                              // she got here early
+    if (vocalOk) { vocal.preload = 'auto'; vocal.load(); }                 // have the replay track ready
+    if (looped) {                                                        // the song already ended and is replaying: bring the hush back
+      fadeAudio(vocal, 0, 500); setTimeout(() => vocal.pause(), 520);
+      looped = false; tailing = false;
+      try { song.currentTime = SONG.choruses[2] - 8; song.volume = 0; } catch {}
+      song.play().then(() => fadeTo(1, 700)).catch(() => {});
+    } else if (!song.paused) {
+      const t = song.currentTime;
+      if (t >= SONG.choruses[2] - .4) crossfadeTo(SONG.choruses[2] - 8);   // the song already ran past it
+      else if (t < 150) crossfadeTo(SONG.hushFrom);                        // she got here early
+    }
     clearInterval(hushTimer);
     hushTimer = setInterval(() => {
       if (!hushOn || song.paused) return;
       const t2 = song.currentTime;
-      if (t2 >= SONG.choruses[2] - .35 && t2 < SONG.choruses[2] + 2) song.currentTime = SONG.hushLoop;
+      if (t2 >= SONG.choruses[2] - .35 && t2 < SONG.choruses[2] + 2) song.currentTime = t2 - 8;   // exactly 4 bars back
     }, 40);
   }
   const releaseHush = () => { hushOn = false; };
-  function dropInstrumental() {
-    try { song.currentTime = SONG.choruses[2]; } catch {}
-    fadeTo(1, 250);
-    if (song.paused) song.play().catch(() => {});
-  }
-  // Lines of the last chorus that the letter echoes: seconds after the chorus starts, measured from the vocal version
-  // (every line is 2 bars long; the gaps in the singing fall every 4 s). Each cue lights the matching words in the letter.
-  const LYRIC_CUES = [['a', .5], ['b', 12.5], ['c', 16.5], ['d', 28.5], ['e', 32.5], ['f', 36.5]];
+
+  // Lines of the last chorus that the letter echoes: seconds after the vocals' first beat (every line is 2 bars long).
+  // Each cue lights the matching words in the letter when they are sung.
+  const LYRIC_CUES = [['a', 1.1], ['b', 12.4], ['c', 17.1], ['d', 29.3], ['e', 33.0], ['f', 38.3]];
   const cuesDone = new Set();
-  let entryPending = false, letterMusicTimer = 0;
+  let letterMusicTimer = 0, bloomed = false;
   function letterMusicTick() {
-    if (entryPending && !song.paused && song.currentTime >= SONG.choruses[2] + READING.vocalEntryBars * 2 - .06) {
-      entryPending = false;
-      enterVocal();
+    if (!onLetter || song.paused) return;
+    const into = song.currentTime - SONG.vocalIn;
+    if (into < -1 || into > 60) return;
+    if (into >= 0 && !bloomed) { bloomed = true; flash(1.6); }              // the vocals bloom in
+    for (const [id, at] of LYRIC_CUES) {
+      if (cuesDone.has(id) || into < at) continue;
+      cuesDone.add(id);
+      const w = $(`#letter [data-cue="${id}"]`);
+      if (!w) continue;
+      w.classList.add('sung');
+      const r = w.getBoundingClientRect();
+      ember(r.left + r.width / 2, r.top + r.height / 2, 10);
+      buzz(10);
     }
-    if (vocalOn && onLetter) {
-      const into = vocal.currentTime - (SONG.choruses[2] - VOCAL_LAG);
-      for (const [id, at] of LYRIC_CUES) {
-        if (cuesDone.has(id) || into < at) continue;
-        cuesDone.add(id);
-        const w = $(`#letter [data-cue="${id}"]`);
-        if (w) { w.classList.add('sung'); buzz(8); }
-      }
-      if (cuesDone.size === LYRIC_CUES.length) { clearInterval(letterMusicTimer); }
-    }
-  }
-  // the vocals come in: a bar line of the instrumental chorus meets the first beat of the vocal version's chorus.
-  // The chords repeat every 2 bars, so the join is seamless.
-  function enterVocal() {
-    if (!vocalOk || vocal.readyState < 2) return;                  // no vocal file: the instrumental plays on
-    const at = SONG.choruses[2] - VOCAL_LAG;
-    if (Math.abs(vocal.currentTime - at) > .05) { try { vocal.currentTime = at; } catch {} }
-    vocal.muted = song.muted; vocal.volume = 0; vocalTail = false;
-    vocal.play().then(() => {
-      vocalOn = true;
-      fadeAudio(vocal, 1, 600);
-      fadeTo(0, 1000); setTimeout(() => song.pause(), 1100);
-      flash(1.6);
-    }).catch(() => {});
+    if (cuesDone.size === LYRIC_CUES.length) clearInterval(letterMusicTimer);
   }
   function dropChorus() {
     hushOn = false;
     if (FAST || !songOk) return;
     looped = false; tailing = false;
     flash(2.4);
-    dropInstrumental();                                           // the chorus drops in, instrumental first
-    cuesDone.clear();
-    entryPending = vocalOk;
+    try { song.currentTime = SONG.choruses[2]; } catch {}                 // the chorus drops in on its downbeat
+    fadeTo(1, 250);
+    if (song.paused) song.play().catch(() => {});
+    cuesDone.clear(); bloomed = false;
     clearInterval(letterMusicTimer);
     letterMusicTimer = setInterval(letterMusicTick, 50);
   }
-  // the vocal version runs out: fade it, then the instrumental comes back softly for whoever is still reading
-  vocal.addEventListener('timeupdate', () => {
-    if (!vocalOn || vocalTail || !vocal.duration) return;
-    if (vocal.duration - vocal.currentTime < 5) { vocalTail = true; fadeAudio(vocal, 0, 4500); }
-  });
-  vocal.addEventListener('ended', () => {
-    vocalOn = false; looped = true; fadeToken++;
-    try { song.currentTime = 0; song.volume = 0; } catch {}
-    song.play().then(() => fadeTo(LOOP_VOLUME, 3000)).catch(() => {});
-  });
   async function playSong() {
     if (!songOk || !song.paused) return;
     try {
       song.volume = 0;
-      const started = song.play();
-      if (vocalOk) { vocal.load(); vocal.play().then(() => vocal.pause()).catch(() => {}); }   // unlocked by this tap, silent
-      await started;
+      await song.play();
       fadeTo(1, 1500);
       musicBtn.hidden = false;
       startMusicFx();
     } catch { /* no file, or blocked: the page works without it */ }
   }
-  // tail: ease down over the last seconds so the loop doesn't start with a jump
+  // tail: ease down over the last seconds, then the full vocal version replays softly for whoever lingers
   song.addEventListener('timeupdate', () => {
     if (looped || tailing || !song.duration) return;
     if (song.duration - song.currentTime < 6) { tailing = true; fadeTo(LOOP_VOLUME, 5000); }
   });
   song.addEventListener('ended', () => {
     looped = true;
-    fadeToken++;
-    song.currentTime = 0;
-    try { song.volume = LOOP_VOLUME; } catch {}
-    song.play().catch(() => {});
+    if (vocalOk) {
+      vocal.currentTime = 0; vocal.volume = 0; vocal.muted = song.muted;
+      vocal.play().then(() => fadeAudio(vocal, LOOP_VOLUME, 2500)).catch(() => {
+        song.currentTime = 0; song.volume = LOOP_VOLUME; song.play().catch(() => {});
+      });
+    } else { song.currentTime = 0; song.volume = LOOP_VOLUME; song.play().catch(() => {}); }
   });
   musicBtn.addEventListener('click', () => {
     song.muted = !song.muted;
     vocal.muted = song.muted;
-    const active = vocalOn ? vocal : song;
+    const active = looped && vocalOk ? vocal : song;
     if (!song.muted && active.paused) active.play().catch(() => {});
     musicBtn.classList.toggle('muted', song.muted);
     musicBtn.setAttribute('aria-pressed', String(song.muted));
@@ -639,7 +610,7 @@
     if (key === 'years') { tasks.delete('years-count'); yearEl.textContent = '2013'; yearFill.style.transform = 'scaleX(0)'; }
   }
 
-  window.__guided = { holds: [], get vocal() { return { on: vocalOn, t: vocal.currentTime, paused: vocal.paused }; }, get cur() { return cur; }, get auto() { return auto; }, get t() { return storyT; } };   // (for testing)
+  window.__guided = { holds: [], get audio() { return { t: song.currentTime, paused: song.paused, looped, vocalT: vocal.currentTime, vocalPaused: vocal.paused }; }, get cur() { return cur; }, get auto() { return auto; }, get t() { return storyT; } };   // (for testing)
   async function enter(i) {
     const prev = cur;
     cur = i; entering = true;
@@ -685,7 +656,7 @@
   // go to the next / previous chapter. A manual move (button or swipe) means she took over: autoplay pauses.
   // The song's beat grid (measured from the mp3). A chapter change that happens by itself waits for the next beat,
   // so the glide lands on the beat, and when a chorus is about to start it lands exactly on the chorus.
-  const BEAT = { period: .5, offset: .29, choruses: SONG.choruses };   // 120 BPM exactly; bars are 2 s; the choruses start on bars 20, 56 and 87
+  const BEAT = { period: .5, offset: .29, choruses: SONG.choruses };   // (bars start .79 s past the even second, beats every .5 s from .29)   // 120 BPM exactly; bars are 2 s; the choruses start on bars 20, 56 and 87
   function beatDelay(glideMs) {
     if (FAST || reduced || !songOk || song.paused || looped) return 0;
     const t = song.currentTime + glideMs / 1000;               // when the next chapter would arrive
