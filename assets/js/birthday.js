@@ -749,6 +749,7 @@
     petalShower(70);
     startLoop();
     player.classList.add('on');
+    try { plPause.focus({ preventScroll: true }); } catch {}     // the gate button just vanished: keep keyboard focus on the player
     enter(0);
     setTimeout(() => caption('Pause or skip any time', 3400), 2600 * PACE);
   });
@@ -947,6 +948,8 @@
     const pageEl = letterEl;
     pageEl.hidden = false;
     window.scrollTo(0, 0);
+    const to = $('.letter-to', letterEl);
+    if (to) { to.tabIndex = -1; try { to.focus({ preventScroll: true }); } catch {} }   // the button she pressed is gone: focus the letter
     onLetter = page === 'letter';
     player.dataset.mode = page === 'letter' ? 'letter' : 'end';
     await wait(140);

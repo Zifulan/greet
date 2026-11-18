@@ -615,14 +615,14 @@ html.guided .pin { position: relative; height: 100vh; height: 100svh; }
 /* Player: autoplay runs by itself; these let her take over (pause, back, next). The thin line shows time to the next chapter */
 .player {
   position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); translate: -50% 0; z-index: 85;
-  display: flex; align-items: center; height: 46px; padding: 0 .3rem; border-radius: 999px;
+  display: flex; align-items: center; height: 48px; padding: 0 .3rem; border-radius: 999px;
   background: rgba(43,20,22,.8); border: 1px solid rgba(245,234,216,.3); box-shadow: 0 8px 22px rgba(0,0,0,.3);
   opacity: 0; pointer-events: none; transition: opacity .6s var(--ease);
 }
 .player.on { opacity: 1; pointer-events: auto; }
 .player[data-mode="end"] { opacity: 0; pointer-events: none; }
 .pl-btn {
-  width: 42px; height: 42px; border: 0; border-radius: 50%; background: none; color: var(--cream);
+  width: 44px; height: 44px; border: 0; border-radius: 50%; background: none; color: var(--cream);
   display: grid; place-items: center; cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
 .pl-btn svg { width: 18px; height: 18px; }
@@ -688,9 +688,9 @@ html.guided .pin { position: relative; height: 100vh; height: 100svh; }
 /* =========================================================
    FIT: every chapter fits one screen and keeps the Continue button's space free
    ========================================================= */
-@media (max-height: 670px) { html { font-size: 15px; } }
-@media (max-height: 620px) { html { font-size: 13.8px; } }
-@media (max-height: 580px) { html { font-size: 12.8px; } }
+@media (max-height: 670px) { html { font-size: 93.75%; } }
+@media (max-height: 620px) { html { font-size: 86.25%; } }
+@media (max-height: 580px) { html { font-size: 80%; } }
 html.guided .scene:not(.hero):not(.letter-scene):not(.invite-scene):not(.track) { padding-top: calc(2.8rem + env(safe-area-inset-top)); padding-bottom: 5.4rem; }
 html.guided .pin { padding-top: calc(2.8rem + env(safe-area-inset-top)); padding-bottom: 5.4rem; }
 html.guided .doodles { margin-bottom: .6rem; }
@@ -776,3 +776,12 @@ html.guided .pile { grid-template-columns: repeat(2, min(39vw, 185px)); gap: 1re
 @keyframes lyrSweep { from { background-size: 0% 100%; } to { background-size: 100% 100%; } }
 @keyframes lyrFlare { 0% { box-shadow: 0 0 0 0 rgba(255,209,102,0), 0 0 0 0 rgba(255,190,70,0); } 25% { box-shadow: 0 0 0 .08em #ffd166, 0 0 34px 10px rgba(255,170,40,.95); } 100% { box-shadow: 0 0 0 .08em #ffd166, 0 0 16px 3px rgba(255,190,70,.75); } }
 @media (prefers-reduced-motion: reduce) { .letter .lyr.sung { animation: none; } }
+
+/* no one-word last lines in short texts (browsers without support just wrap as usual) */
+.body, .hand, .step-text, .wish-card p, .chat-note { text-wrap: pretty; }
+
+/* a clear keyboard focus ring on every control: gold with a dark edge, readable on both the light and the dark skies */
+:where(button, a, [role="button"]):focus-visible {
+  outline: 3px solid #ffd166; outline-offset: 4px; box-shadow: 0 0 0 1px rgba(43,20,22,.85);
+}
+.pl-btn:focus-visible { outline-offset: -4px; box-shadow: none; }
