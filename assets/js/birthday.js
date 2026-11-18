@@ -609,7 +609,7 @@
     if (key === 'years') { tasks.delete('years-count'); yearEl.textContent = '2013'; yearFill.style.transform = 'scaleX(0)'; }
   }
 
-  window.__guided = { holds: [], get audio() { return { t: song.currentTime, paused: song.paused, looped, vocalT: vocal.currentTime, vocalPaused: vocal.paused }; }, get cur() { return cur; }, get auto() { return auto; }, get t() { return storyT; } };   // (for testing)
+  window.__guided = { holds: [], browse: () => enterBrowse(), get browsing() { return browsing; }, get audio() { return { t: song.currentTime, paused: song.paused, looped, vocalT: vocal.currentTime, vocalPaused: vocal.paused }; }, get cur() { return cur; }, get auto() { return auto; }, get t() { return storyT; } };   // (for testing)
   async function enter(i) {
     const prev = cur;
     cur = i; entering = true;
@@ -633,12 +633,13 @@
       if (SKY[key]) {                   // the sky starts changing just as she finishes reading, then settles
         const dur = SKY[key] * 1000;
         let delay = key === 'years' ? Math.max(1000, read - dur * .3) : 1500;
-        if (key === 'years' && songLive()) {       // night should be complete just as the first chorus lands
-          const want = (SONG.choruses[0] + 1.2 - dur / 1000 - song.currentTime) * 1000;
-          if (want > 1000 && want < read) delay = want;
+        if (key === 'years' && songLive()) {       // the sky starts to darken as the first chorus hits (once she has finished reading)
+          const want = (SONG.choruses[0] + .5 - song.currentTime) * 1000;
+          if (want > read - 2500 && want < read + 2500) delay = want;
         }
         playSky(stop, delay, dur);
-        holdMs = Math.max(holdMs, delay + dur + 1000);
+        // chapter two's text bows out before the dark, so it moves on soon after the night is nearly here (no long empty sky)
+        holdMs = Math.max(holdMs, key === 'years' ? delay + dur * .85 : delay + dur + 1000);
       }
       if (STOPS[i + 1]?.dataset.stop === 'firsts-chat' && songLive()) {   // the chat ("cieee", "yesss") opens on chorus 2
         const d = SONG.choruses[1] - (song.currentTime + (holdMs + GLIDE) / 1000);
@@ -784,7 +785,7 @@
   const match = $('#match');
   const matchTip = $('.match-tip', match);
   const wishCard = $('#wishCard');
-  const btnLetter = $('#btnLetter'), btnReplay = $('#btnReplay');
+  const btnLetter = $('#btnLetter');
   const letterEl = $('#letter');
   const LIGHT_RADIUS = 30; // px between match head and wick
   let armed = false, matchLit = false, allLit = false, drag = null, hopping = false, assistPoke = () => {};
@@ -959,12 +960,38 @@
     if (page === 'letter') {
       if (READING.chorusDrop !== 'candles') dropChorus();
       startLetterRead();
-      setTimeout(() => btnReplay.classList.add('show'), sec(2.6));
     }
     swapping = false;
   }
-  btnLetter.addEventListener('click', () => swapTo('letter'));
-  btnReplay.addEventListener('click', () => location.reload());      // play it all again, from the gate
+
+  // When the letter has been read, the whole page opens up: every chapter is there, in order, from the first to the letter,
+  // and she can scroll through it all at her own pace while the song keeps playing.
+  let browsing = false;
+  function enterBrowse() {
+    if (browsing) return;
+    browsing = true;
+    tasks.delete('letter');                                        // the letter no longer scrolls by itself
+    player.dataset.mode = 'end';
+    const paper = $('.letter', letterEl);
+    const y0 = paper.getBoundingClientRect().top;
+    document.body.classList.remove('page-letter');                 // every chapter is shown again
+    $$('.reveal').forEach(e => { e.style.transition = 'none'; e.classList.add('in'); });
+    yearEl.textContent = '2025'; yearFill.style.transform = 'scaleX(1)';
+    tracks.forEach((fx, sc) => {
+      fx.apply(sc.dataset.stop === 'years' ? .28 : 1);             // chapter two in daylight (its text is dark), the engagement at night
+      if (sc.dataset.stop === 'years') $('.pin-body', sc).style.opacity = 1;
+    });
+    const y1 = paper.getBoundingClientRect().top;
+    window.scrollTo(0, scrollY + (y1 - y0));                       // the letter stays exactly where she is reading
+    requestAnimationFrame(() => $$('.reveal').forEach(e => { e.style.transition = ''; }));
+    // gentle motion only on the chapters she can see
+    const io = new IntersectionObserver(es => es.forEach(e => e.target.classList.toggle('on', e.isIntersecting)), { rootMargin: '10% 0px' });
+    $$('.scene').forEach(s => io.observe(s));
+  }
+  addEventListener('scroll', () => {                               // she got to the end of the letter by hand
+    if (onLetter && !browsing && scrollY + innerHeight >= document.documentElement.scrollHeight - 160) enterBrowse();
+  }, { passive: true });
+  btnLetter.addEventListener('click', () => { if (browsing) letterEl.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }); else swapTo('letter'); });
 
   // The letter scrolls by itself at reading pace, keeping the line being read about halfway down the screen.
   // Touching it (or pressing pause) hands control back to her; play picks up from wherever she scrolled to.
@@ -986,7 +1013,7 @@
       window.scrollTo(0, scrollY + (want - scrollY) * Math.min(1, dt / 220));
       if (cursor >= bottom) {                         // she has read it all: the letter just stays, the song keeps playing
         if (endedAt === null) endedAt = T;
-        if (T - endedAt >= 2600 * PACE) { player.dataset.mode = 'end'; return true; }
+        if (T - endedAt >= 2600 * PACE) { enterBrowse(); return true; }
       }
       return false;
     });
