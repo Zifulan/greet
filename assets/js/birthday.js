@@ -179,12 +179,13 @@
   const song = $('#song');
   const musicBtn = $('#musicBtn');
   const LOOP_VOLUME = .3;
-  // The song's map (measured): 120 BPM, a bar is 2 s, and the choruses hit on bars at 40.8, 112.8 and 174.8 s.
+  // The song's map (measured): 120 BPM, a bar is 2 s. `choruses` are the story's sync points (the chapters line up with them);
+  // the last chorus's very first hit, which the letter drops in on, is at `drop`.
   // Just before the last chorus there is a quiet 12 s hush.
   // The file on the page is one remix: the instrumental up to a bar line at 190.8 s (the last chorus has played 16 s),
   // then the vocal version from its own last-chorus downbeat. The join sits on a bar line, so it plays as one piece.
   // Replays use the full vocal version.
-  const SONG = { choruses: [40.8, 112.8, 174.8], hushFrom: 162.3, hushLoop: 166.3, hushEnd: 173.95, vocalIn: 190.8 };
+  const SONG = { choruses: [40.3, 112.3, 174.3], drop: 174.8, hushFrom: 162.3, hushLoop: 166.3, hushEnd: 173.95, vocalIn: 190.8 };
   const instClock = p => p > SONG.vocalIn ? p - 16 : p;       // after the join the remix is 16 s ahead of the instrumental
   const vocal = new Audio('assets/audio/night-changes-vocal.mp3');
   vocal.preload = 'none'; vocal.loop = true; vocal.volume = 0;
@@ -295,7 +296,7 @@
     if (FAST || !songOk) return;
     looped = false; tailing = false;
     flash(2.4);
-    try { song.currentTime = SONG.choruses[2]; } catch {}                 // the chorus drops in on its downbeat
+    try { song.currentTime = SONG.drop; } catch {}                        // the chorus drops in on its first hit
     fadeTo(1, 250);
     if (song.paused) song.play().catch(() => {});
     cuesDone.clear(); bloomed = false;
