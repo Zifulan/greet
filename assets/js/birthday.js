@@ -259,7 +259,7 @@
       song.play().then(() => fadeTo(1, 700)).catch(() => {});
     } else if (!song.paused) {
       const t = song.currentTime;
-      if (t >= SONG.hushEnd - .05) crossfadeTo(SONG.hushLoop);             // the song already ran past it
+      if (t >= SONG.hushEnd + .3) crossfadeTo(SONG.hushLoop);              // the song already ran well past it (the loop below handles the rest)
       else if (t < 150) crossfadeTo(SONG.hushFrom);                        // she got here early
     }
     clearInterval(hushTimer);
